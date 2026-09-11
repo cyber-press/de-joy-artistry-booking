@@ -1,27 +1,19 @@
 {
-  "buildId": "dejoy-weboost-motion-cards-v2.4",
-  "summary": "Weboost-inspired motion effects and square image-card proportions",
+  "buildId": "dejoy-shopify-admin-products-v3.0",
+  "summary": "Shopify-inspired product administration with editable booking portfolio defaults",
   "changes": [
-    "Repositioned the homepage with premium editorial messaging and hierarchy",
-    "Added trust indicators, experience standards, service routing and a closing CTA",
-    "Connected service cards to preselected booking states",
-    "Connected the completed booking request directly to +234 708 777 7511",
-    "Added persistent WhatsApp access and copy fallback",
-    "Added Privacy Policy and Terms of Use routes",
-    "Added Open Graph, Twitter and NailSalon structured metadata",
-    "Added reduced-motion accessibility support and responsive executive styling",
-    "Increased logo, navigation and booking CTA readability",
-    "Rebuilt the homepage hero as a unified image and content composition",
-    "Introduced the approved Where Beauty Meets the Art of You positioning",
-    "Increased desktop navigation and Book Now typography",
-    "Standardized the hero to a 1440px container and viewport-aware 576–736px height",
-    "Replaced the artificial floating-hands visual with premium neutral Pexels photography",
-    "Repositioned the brand around Confidence, Crafted at Your Fingertips",
-    "Removed the fixed hero height and redundant signature overlay to prevent clipping",
-    "Installed approved Option 1 soft-pink glitter manicure photography",
-    "Reduced the desktop hero to the standard 560px presentation height",
-    "Applied square 1:1 image cards in a responsive three, two and one-column grid",
-    "Added 10px card lift, 1.1x image zoom and gradient-overlay hover effects",
-    "Added a staggered 40px scroll-reveal effect with reduced-motion support"
+    "Rebuilt the admin Products index with status views, search, counts, selection and bulk deletion",
+    "Introduced a Shopify-inspired two-column product editor for content, media, pricing, inventory, status and organization",
+    "Added multi-image uploads with a 12-image limit, primary-image treatment and per-image removal",
+    "Seeded all seven booking-page photographs as private draft products for administrator review",
+    "Added permanent product deletion with uploaded-file cleanup and explicit confirmation",
+    "Improved responsive behavior, keyboard focus treatment, status badges and WCAG-oriented labeling",
+    "Kept all zero-price seeded products in draft so they cannot appear in the public storefront"
+  ],
+  "ownership": "PressCreates LLC",
+  "deployment": [
+    "Run the PostgreSQL schema migration during application startup",
+    "Ensure UPLOAD_DIR is mapped to persistent storage in production",
+    "Render should deploy automatically after merge"
   ]
 }
