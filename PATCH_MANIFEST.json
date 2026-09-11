@@ -1,18 +1,21 @@
 {
-  "buildId": "dejoy-shopify-admin-products-v3.0",
-  "summary": "Shopify-inspired product administration with editable booking portfolio defaults",
+  "buildId": "dejoy-shopify-commerce-v3.1",
+  "summary": "Shopify-inspired admin product management and complete Shop All nail collection",
   "changes": [
+    "Rebuilt Shop All with breadcrumb-led hierarchy, a three-column product grid and responsive collection layout",
+    "Added collection, availability and naira price filters with clear-filter states",
+    "Added eight sort modes: Featured, Newest, Best selling, price, alphabetic and Oldest",
+    "Published seven named nail variations using the existing booking-page photography and placeholder naira pricing",
     "Rebuilt the admin Products index with status views, search, counts, selection and bulk deletion",
     "Introduced a Shopify-inspired two-column product editor for content, media, pricing, inventory, status and organization",
     "Added multi-image uploads with a 12-image limit, primary-image treatment and per-image removal",
-    "Seeded all seven booking-page photographs as private draft products for administrator review",
     "Added permanent product deletion with uploaded-file cleanup and explicit confirmation",
-    "Improved responsive behavior, keyboard focus treatment, status badges and WCAG-oriented labeling",
-    "Kept all zero-price seeded products in draft so they cannot appear in the public storefront"
+    "Improved responsive behavior, keyboard focus treatment, status badges and WCAG-oriented labeling"
   ],
   "ownership": "PressCreates LLC",
   "deployment": [
-    "Run the PostgreSQL schema migration during application startup",
+    "Run the PostgreSQL schema migration during application startup to seed the starter collection",
+    "Review and replace placeholder prices from the Products administration workspace",
     "Ensure UPLOAD_DIR is mapped to persistent storage in production",
     "Render should deploy automatically after merge"
   ]
