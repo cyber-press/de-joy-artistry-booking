@@ -22,6 +22,20 @@ This repository contains the customer storefront, owner admin, API, PostgreSQL s
 
 Back up both Docker volumes: `dejoy_database` contains customers/orders/catalogue, and `dejoy_uploads` contains product media. Keep `.env` and backups out of Git.
 
+### Ubuntu 24.04 automated setup
+
+On a fresh PressCreates-controlled VPS, clone this repository and run:
+
+```bash
+sudo ./ops/bootstrap-ubuntu.sh
+sudo nano .env.production
+./ops/deploy.sh
+```
+
+The bootstrap installs Docker from Docker's official Ubuntu repository, enables the firewall, generates strong database and owner-setup secrets, and protects the production environment file. Set `DOMAIN` and `ACME_EMAIL` after DNS points to the VPS. Caddy automatically obtains and renews HTTPS certificates.
+
+PostgreSQL has no public port and is isolated on an internal Docker network. Only ports 22, 80, and 443 are opened. Add `ops/backup.sh` to root's cron after connecting encrypted off-server backup storage; local-only backups do not protect against total VPS loss.
+
 ## Local development
 
 Provide `DATABASE_URL`, `DATABASE_SSL=false`, and `SETUP_TOKEN`, then run `npm install` and `npm run dev`. Vite proxies API and upload requests to Express on port 3000.
