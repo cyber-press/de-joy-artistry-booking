@@ -195,23 +195,22 @@ function Home() {
       <section className="hero">
         <div className="hero-inner">
           <div className="hero-copy">
-            <span className="eyebrow">PRIVATE APPOINTMENTS · ABUJA</span>
+            <span className="eyebrow">ABUJA'S BESPOKE NAIL EXPERIENCE</span>
             <h1>
-              Nail artistry,
+              Where beauty meets
               <br />
-              <em>made personal.</em>
+              <em>the art of you.</em>
             </h1>
             <p>
-              Refined, expressive sets designed around your style, lifestyle,
-              and natural nails. Build your appointment online, then confirm
-              directly with Joy.
+              Bespoke nail artistry shaped around your style, your moment, and
+              the confidence you want to carry.
             </p>
             <div className="hero-actions">
               <Link className="btn primary" to="/book">
-                Design your appointment <ArrowRight />
+                Book your signature set <ArrowRight />
               </Link>
               <Link className="text-link" to="/services">
-                View the service menu <ArrowRight />
+                Explore the artistry <ArrowRight />
               </Link>
             </div>
             <div className="hero-trust">
@@ -233,7 +232,7 @@ function Home() {
             />
             <div className="image-note">
               <span>THE DE_JOY SIGNATURE</span>
-              <b>Meticulous detail. Effortless finish.</b>
+              <b>Designed with intention. Finished with confidence.</b>
             </div>
           </div>
         </div>
@@ -664,7 +663,11 @@ function Book() {
                     <MessageCircle /> Send to Joy on WhatsApp
                   </a>
                 ) : (
-                  <button type="button" className="btn whatsapp" onClick={() => go(6)}>
+                  <button
+                    type="button"
+                    className="btn whatsapp"
+                    onClick={() => go(6)}
+                  >
                     <MessageCircle /> Prepare WhatsApp request
                   </button>
                 )}
@@ -1101,24 +1104,57 @@ function Legal({ type }: { type: "privacy" | "terms" }) {
         {privacy ? (
           <>
             <h2>Information you choose to share</h2>
-            <p>This website prepares a booking message from the name, contact number, appointment preferences, and notes you enter. The current website does not create an account, process payment, or store your form entries in its own database.</p>
+            <p>
+              This website prepares a booking message from the name, contact
+              number, appointment preferences, and notes you enter. The current
+              website does not create an account, process payment, or store your
+              form entries in its own database.
+            </p>
             <h2>WhatsApp communication</h2>
-            <p>When you choose to send your request, WhatsApp opens with your booking details. Your communication is then handled through WhatsApp and is subject to its own privacy practices.</p>
+            <p>
+              When you choose to send your request, WhatsApp opens with your
+              booking details. Your communication is then handled through
+              WhatsApp and is subject to its own privacy practices.
+            </p>
             <h2>How information is used</h2>
-            <p>Information you send is used to review your request, discuss the service, confirm availability and price, and communicate about your appointment.</p>
+            <p>
+              Information you send is used to review your request, discuss the
+              service, confirm availability and price, and communicate about
+              your appointment.
+            </p>
             <h2>Your choices</h2>
-            <p>You may decide not to include optional details. To ask about information previously shared, contact Joy through the WhatsApp link provided on this website.</p>
+            <p>
+              You may decide not to include optional details. To ask about
+              information previously shared, contact Joy through the WhatsApp
+              link provided on this website.
+            </p>
           </>
         ) : (
           <>
             <h2>Booking requests</h2>
-            <p>Submitting or sending a request does not guarantee an appointment. A booking is confirmed only after Joy responds with availability and any required next steps.</p>
+            <p>
+              Submitting or sending a request does not guarantee an appointment.
+              A booking is confirmed only after Joy responds with availability
+              and any required next steps.
+            </p>
             <h2>Services and pricing</h2>
-            <p>Images and service descriptions are provided as inspiration. Final design suitability, timing, and price depend on the selected service and are confirmed directly with Joy.</p>
+            <p>
+              Images and service descriptions are provided as inspiration. Final
+              design suitability, timing, and price depend on the selected
+              service and are confirmed directly with Joy.
+            </p>
             <h2>Client responsibility</h2>
-            <p>Please provide accurate contact and booking information and disclose any relevant nail conditions or sensitivities before service. Do not rely on this website for medical advice.</p>
+            <p>
+              Please provide accurate contact and booking information and
+              disclose any relevant nail conditions or sensitivities before
+              service. Do not rely on this website for medical advice.
+            </p>
             <h2>Website use</h2>
-            <p>You may use this website for genuine appointment enquiries. Content and branding may not be copied or republished without permission from DE_JOY ARTISTRY.</p>
+            <p>
+              You may use this website for genuine appointment enquiries.
+              Content and branding may not be copied or republished without
+              permission from DE_JOY ARTISTRY.
+            </p>
           </>
         )}
       </article>
@@ -1143,7 +1179,11 @@ function Footer() {
           <Link to="/privacy">Privacy</Link>
           <Link to="/terms">Terms</Link>
         </nav>
-        <small>© 2026 DE_JOY ARTISTRY<br />Abuja, Nigeria</small>
+        <small>
+          © 2026 DE_JOY ARTISTRY
+          <br />
+          Abuja, Nigeria
+        </small>
       </div>
     </footer>
   );
