@@ -1,0 +1,34 @@
+services:
+  database:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dejoy
+      POSTGRES_USER: dejoy
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes:
+      - dejoy_database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dejoy -d dejoy"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+  app:
+    build: .
+    restart: unless-stopped
+    ports: ["3000:3000"]
+    environment:
+      DATABASE_URL: postgresql://dejoy:${POSTGRES_PASSWORD}@database:5432/dejoy
+      DATABASE_SSL: "false"
+      SETUP_TOKEN: ${SETUP_TOKEN:?Set SETUP_TOKEN}
+      NODE_ENV: production
+      PORT: 3000
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - dejoy_uploads:/app/uploads
+    depends_on:
+      database:
+        condition: service_healthy
+volumes:
+  dejoy_database:
+  dejoy_uploads:
