@@ -12,6 +12,7 @@ import {
   ChevronDown,
   CircleDollarSign,
   ExternalLink,
+  FolderTree,
   ImagePlus,
   LayoutDashboard,
   LogOut,
@@ -47,6 +48,16 @@ type Product = {
   images: { id: string; url: string; alt_text: string; position: number }[];
 };
 type CartLine = { product: Product; quantity: number };
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  image_url: string;
+  status: "active" | "archived";
+  sort_order: number;
+  product_count: number;
+};
 type SettingsData = {
   store_name: string;
   announcement: string;
@@ -998,12 +1009,33 @@ export function CheckoutPage() {
         <aside>
           <h2>Your order</h2>
           {lines.map((l) => (
-            <p key={l.product.id}>
-              <span>
-                {l.product.name} × {l.quantity}
-              </span>
+            <article className="checkout-product" key={l.product.id}>
+              <div className="checkout-media-stack">
+                {l.product.images.slice(0, 3).map((image, index) => (
+                  <img
+                    key={image.id}
+                    src={image.url}
+                    alt={
+                      image.alt_text || `${l.product.name} view ${index + 1}`
+                    }
+                  />
+                ))}
+                {!l.product.images.length && (
+                  <div className="checkout-image-placeholder">
+                    <ImagePlus />
+                  </div>
+                )}
+                <b>{l.quantity}</b>
+              </div>
+              <div>
+                <strong>{l.product.name}</strong>
+                <small>
+                  {l.product.category} · {l.product.images.length}{" "}
+                  {l.product.images.length === 1 ? "view" : "views"}
+                </small>
+              </div>
               <b>{money(l.product.price * l.quantity)}</b>
-            </p>
+            </article>
           ))}
           <p className="checkout-total">
             <span>Total</span>
@@ -1070,6 +1102,7 @@ export function Admin() {
   const links = [
     ["overview", "Overview", <LayoutDashboard />],
     ["products", "Products", <Package />],
+    ["categories", "Categories", <FolderTree />],
     ["orders", "Orders", <ShoppingBag />],
     ["settings", "Settings", <Settings />],
   ];
@@ -1127,6 +1160,8 @@ export function Admin() {
           <AdminOverview go={setTab} />
         ) : tab === "products" ? (
           <AdminProducts />
+        ) : tab === "categories" ? (
+          <AdminCategories />
         ) : tab === "orders" ? (
           <AdminOrders />
         ) : (
@@ -1345,13 +1380,193 @@ function AdminAuth({
     </div>
   );
 }
+function AdminCategories() {
+  const [items, setItems] = useState<Category[]>([]);
+  const [edit, setEdit] = useState<Partial<Category> | null>(null);
+  const [error, setError] = useState("");
+  const load = () =>
+    api<{ categories: Category[] }>("/api/admin/categories").then((x) =>
+      setItems(x.categories),
+    );
+  useEffect(() => {
+    load();
+  }, []);
+  async function save(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError("");
+    const f = new FormData(e.currentTarget);
+    const body = {
+      name: f.get("name"),
+      slug: f.get("slug"),
+      description: f.get("description"),
+      image_url: f.get("image_url"),
+      status: f.get("status"),
+      sort_order: Number(f.get("sort_order")),
+    };
+    try {
+      await api(
+        edit?.id ? `/api/admin/categories/${edit.id}` : "/api/admin/categories",
+        { method: edit?.id ? "PUT" : "POST", body: JSON.stringify(body) },
+      );
+      setEdit(null);
+      load();
+    } catch (x) {
+      setError((x as Error).message);
+    }
+  }
+  async function remove(c: Category) {
+    if (!confirm(`Delete ${c.name}?`)) return;
+    try {
+      await api(`/api/admin/categories/${c.id}`, { method: "DELETE" });
+      load();
+    } catch (x) {
+      setError((x as Error).message);
+    }
+  }
+  return (
+    <>
+      <header className="admin-head">
+        <div>
+          <span>CATALOGUE ORGANISATION</span>
+          <h1>Categories</h1>
+          <p>Group products into customer-facing collections.</p>
+        </div>
+        <button
+          className="store-button"
+          onClick={() =>
+            setEdit({ status: "active", sort_order: items.length + 1 })
+          }
+        >
+          <Plus />
+          Add category
+        </button>
+      </header>
+      {error && <div className="admin-notice error">{error}</div>}
+      {edit && (
+        <form className="admin-form category-form" onSubmit={save}>
+          <div className="admin-form-title">
+            <div>
+              <span>{edit.id ? "EDIT CATEGORY" : "NEW CATEGORY"}</span>
+              <h2>{edit.id ? edit.name : "Create a category"}</h2>
+            </div>
+            <button type="button" onClick={() => setEdit(null)}>
+              ×
+            </button>
+          </div>
+          <div className="form-grid">
+            <label>
+              Name
+              <input name="name" defaultValue={edit.name} required />
+            </label>
+            <label>
+              URL handle
+              <input
+                name="slug"
+                defaultValue={edit.slug}
+                placeholder="e.g. nail-care"
+              />
+            </label>
+            <label className="wide">
+              Description
+              <textarea name="description" defaultValue={edit.description} />
+            </label>
+            <label className="wide">
+              Cover image URL
+              <input
+                name="image_url"
+                type="url"
+                defaultValue={edit.image_url}
+                placeholder="https://…"
+              />
+            </label>
+            <label>
+              Status
+              <select name="status" defaultValue={edit.status}>
+                <option value="active">Active</option>
+                <option value="archived">Archived</option>
+              </select>
+            </label>
+            <label>
+              Display order
+              <input
+                name="sort_order"
+                type="number"
+                min="0"
+                defaultValue={edit.sort_order}
+              />
+            </label>
+          </div>
+          <div className="admin-actions">
+            <button type="button" onClick={() => setEdit(null)}>
+              Cancel
+            </button>
+            <button className="store-button">Save category</button>
+          </div>
+        </form>
+      )}
+      <div className="category-grid">
+        {items.map((c) => (
+          <article key={c.id}>
+            {c.image_url ? (
+              <img src={c.image_url} alt="" />
+            ) : (
+              <div className="category-placeholder">
+                <FolderTree />
+              </div>
+            )}
+            <div>
+              <span className={`admin-badge ${c.status}`}>{c.status}</span>
+              <h2>{c.name}</h2>
+              <p>{c.description || "No description added."}</p>
+              <small>
+                {c.product_count}{" "}
+                {c.product_count === 1 ? "product" : "products"} · /collections/
+                {c.slug}
+              </small>
+            </div>
+            <footer>
+              <button onClick={() => setEdit(c)}>Edit</button>
+              <button disabled={c.product_count > 0} onClick={() => remove(c)}>
+                <Trash2 /> Delete
+              </button>
+            </footer>
+          </article>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function CategorySelect({ value }: { value?: string }) {
+  const [items, setItems] = useState<Category[]>([]);
+  useEffect(() => {
+    api<{ categories: Category[] }>("/api/admin/categories").then((x) =>
+      setItems(x.categories),
+    );
+  }, []);
+  return (
+    <select name="category" defaultValue={value || ""} required>
+      <option value="" disabled>
+        Select a category
+      </option>
+      {items
+        .filter((c) => c.status === "active" || c.name === value)
+        .map((c) => (
+          <option key={c.id} value={c.name}>
+            {c.name}
+          </option>
+        ))}
+    </select>
+  );
+}
 function AdminProducts() {
   const [items, setItems] = useState<Product[]>([]);
   const [edit, setEdit] = useState<AdminProduct | null>(null);
   const load = () =>
-    api<{ products: Product[] }>("/api/admin/products").then((x) =>
-      setItems(x.products),
-    );
+    api<{ products: Product[] }>("/api/admin/products").then((x) => {
+      setItems(x.products);
+      if (edit?.id) setEdit(x.products.find((p) => p.id === edit.id) || null);
+    });
   useEffect(() => {
     load();
   }, []);
@@ -1408,7 +1623,7 @@ function AdminProducts() {
             </label>
             <label>
               Category
-              <input name="category" defaultValue={edit.category} />
+              <CategorySelect value={edit.category} />
             </label>
             <label>
               Price (NGN)
@@ -1476,7 +1691,6 @@ function AdminProducts() {
               product={edit as Product}
               onChange={() => {
                 load();
-                api<Product[]>(`/api/admin/products`).catch(() => {});
               }}
             />
           )}
@@ -1514,7 +1728,7 @@ function ImageManager({
   async function upload(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files?.[0]) return;
     const f = new FormData();
-    f.append("image", e.target.files[0]);
+    Array.from(e.target.files).forEach((file) => f.append("images", file));
     await api(`/api/admin/products/${product.id}/images`, {
       method: "POST",
       body: f,
@@ -1523,7 +1737,17 @@ function ImageManager({
   }
   return (
     <div className="image-manager">
-      <h3>Product images</h3>
+      <div className="media-heading">
+        <div>
+          <span>PRODUCT MEDIA</span>
+          <h3>Product images</h3>
+          <p>
+            Upload up to eight angles, details, colours or packaging views. The
+            first image is the product cover.
+          </p>
+        </div>
+        <b>{product.images?.length || 0}/8</b>
+      </div>
       <div>
         {product.images?.map((i) => (
           <figure key={i.id}>
@@ -1540,10 +1764,21 @@ function ImageManager({
             </button>
           </figure>
         ))}
-        <label>
+        <label
+          className={(product.images?.length || 0) >= 8 ? "media-limit" : ""}
+        >
           <ImagePlus />
-          Upload image
-          <input hidden type="file" accept="image/*" onChange={upload} />
+          {(product.images?.length || 0) >= 8
+            ? "Image limit reached"
+            : "Add images"}
+          <input
+            hidden
+            disabled={(product.images?.length || 0) >= 8}
+            multiple
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/avif"
+            onChange={upload}
+          />
         </label>
       </div>
     </div>
