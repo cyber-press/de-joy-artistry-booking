@@ -1,6 +1,6 @@
 {
-  "buildId": "dejoy-hero-editorial-v2.2",
-  "summary": "Luxury hero imagery, stronger positioning and content-safe sizing",
+  "buildId": "dejoy-hero-option-1-v2.3",
+  "summary": "Approved soft-pink manicure hero and standard 560px desktop height",
   "changes": [
     "Repositioned the homepage with premium editorial messaging and hierarchy",
     "Added trust indicators, experience standards, service routing and a closing CTA",
@@ -17,6 +17,8 @@
     "Standardized the hero to a 1440px container and viewport-aware 576–736px height",
     "Replaced the artificial floating-hands visual with premium neutral Pexels photography",
     "Repositioned the brand around Confidence, Crafted at Your Fingertips",
-    "Removed the fixed hero height and redundant signature overlay to prevent clipping"
+    "Removed the fixed hero height and redundant signature overlay to prevent clipping",
+    "Installed approved Option 1 soft-pink glitter manicure photography",
+    "Reduced the desktop hero to the standard 560px presentation height"
   ]
 }
