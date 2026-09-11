@@ -14,7 +14,34 @@ export function StoreProvider({children}:{children:React.ReactNode}){const [line
 export const useCart=()=>React.useContext(CartContext);
 
 function StoreShell({children}:{children:React.ReactNode}){const [s,setS]=useState<SettingsData|null>(null);const {lines}=useCart();useEffect(()=>{api<SettingsData>("/api/store").then(setS).catch(()=>{})},[]);return <div className="shop"><div className="shop-announcement">{s?.announcement||"Thoughtfully selected beauty essentials"}</div><nav className="shop-nav" aria-label="Store navigation"><Link to="/store" className="shop-wordmark">DE_JOY <small>STORE</small></Link><div><NavLink end to="/store">New & featured</NavLink><NavLink to="/collections/all">Shop all</NavLink><NavLink to="/collections/nail-care">Nail care</NavLink><NavLink to="/collections/press-ons">Press-ons</NavLink></div><div className="shop-tools"><Link to="/search" aria-label="Search"><Search/></Link><Link to="/cart" aria-label="Shopping bag"><ShoppingBag/><b>{lines.reduce((n,l)=>n+l.quantity,0)}</b></Link></div></nav>{children}<footer className="shop-footer"><div><b>DE_JOY STORE</b><p>Considered beauty essentials and signature nail pieces, curated in Abuja.</p></div><div><b>SHOP</b><Link to="/collections/all">All products</Link><Link to="/search">Search</Link><Link to="/cart">Your bag</Link></div><div><b>HELP</b><Link to="/shop/shipping">Shipping & delivery</Link><Link to="/shop/returns">Returns</Link><Link to="/shop/faq">FAQs</Link><Link to="/track-order">Track an order</Link></div><small>© 2026 PressCreates LLC. Store platform owned and operated independently.</small></footer></div>}
-function ProductCard({p}:{p:Product}){const {add}=useCart();return <article className="product-card"><Link to={`/store/${p.slug}`} className="product-media">{p.images[0]?<img src={p.images[0].url} alt={p.images[0].alt_text||p.name}/>:<span>No image</span>}{p.compare_at_price&&<b>Sale</b>}</Link><div><small>{p.category||"DE_JOY EDIT"}</small><Link to={`/store/${p.slug}`}><h3>{p.name}</h3></Link><p>{money(p.price)} {p.compare_at_price&&<del>{money(p.compare_at_price)}</del>}</p><button className="store-button" disabled={!p.inventory} onClick={()=>add(p)}>{p.inventory?"Add to bag":"Sold out"}</button></div></article>}
+function ProductCard({ p }: { p: Product }) {
+  const { add } = useCart();
+  const [added, setAdded] = useState(false);
+  const cover = p.images[0];
+  const alternate = p.images[1];
+  const addToBag = () => {
+    add(p);
+    setAdded(true);
+    window.setTimeout(() => setAdded(false), 1600);
+  };
+  return (
+    <article className="product-card">
+      <Link to={`/store/${p.slug}`} className="product-media">
+        {cover ? <img src={cover.url} alt={cover.alt_text || p.name} /> : <span>No image</span>}
+        {alternate && <img className="product-image-alt" src={alternate.url} alt="" aria-hidden="true" />}
+        {p.compare_at_price && <b>Sale</b>}
+      </Link>
+      <div>
+        <small>{p.category || "DE_JOY EDIT"}</small>
+        <Link to={`/store/${p.slug}`}><h3>{p.name}</h3></Link>
+        <p>{money(p.price)} {p.compare_at_price && <del>{money(p.compare_at_price)}</del>}</p>
+        <button className={`store-button ${added ? "added" : ""}`} disabled={!p.inventory || added} onClick={addToBag}>
+          {added ? "Added to bag ✓" : p.inventory ? "Add to bag" : "Sold out"}
+        </button>
+      </div>
+    </article>
+  );
+}
 export function StoreHome(){const [products,setProducts]=useState<Product[]>([]);useEffect(()=>{api<{products:Product[]}>("/api/products").then(x=>setProducts(x.products))},[]);const categories=[...new Set(products.map(p=>p.category).filter(Boolean))];return <StoreShell><section className="store-hero"><div><span>THE DE_JOY STORE</span><h1>The art of beautiful<br/><em>finishing touches.</em></h1><p>Discover nail essentials, signature press-ons and considered beauty pieces curated to elevate your everyday ritual.</p><Link to="/collections/all" className="store-button">Shop new arrivals <ArrowRight/></Link></div></section><section className="shop-promises"><div><Truck/><span><b>Delivery across Nigeria</b><small>Confirmed after checkout</small></span></div><div><ShieldCheck/><span><b>Carefully selected</b><small>Quality-led essentials</small></span></div><div><Sparkles/><span><b>The DE_JOY standard</b><small>Distinctive, considered beauty</small></span></div></section><section className="collection-cards"><header><span>SHOP BY COLLECTION</span><h2>Find your finishing touch</h2></header><div>{(categories.length?categories:["Nail care","Press-ons","Beauty tools"]).slice(0,3).map((c,i)=><Link key={c} to={`/collections/${encodeURIComponent(c.toLowerCase().replace(/\s+/g,"-"))}`}><div className={`collection-art art-${i+1}`}/><span>COLLECTION {String(i+1).padStart(2,"0")}</span><h3>{c}</h3><p>Explore the edit <ArrowRight/></p></Link>)}</div></section><section id="collection" className="store-section"><header><span>CURATED FOR YOU</span><h2>New and noteworthy</h2><p>Fresh additions and DE_JOY favourites, selected with intention.</p></header><div className="product-grid">{products.slice(0,6).map(p=><ProductCard key={p.id} p={p}/>)}{!products.length&&<p className="empty">The first collection is being prepared.</p>}</div><div className="section-action"><Link className="store-button" to="/collections/all">View all products <ArrowRight/></Link></div></section><section className="shop-editorial"><div/><article><span>THE DE_JOY EDIT</span><h2>Thoughtful details.<br/>Effortless confidence.</h2><p>Every item earns its place through quality, usefulness and the ability to make your beauty ritual feel more considered.</p><Link to="/collections/all">Discover the collection <ArrowRight/></Link></article></section></StoreShell>}
 
 function Catalogue({ title, category }: { title: string; category?: string }) {
@@ -154,9 +181,158 @@ export function CollectionPage(){const {handle="all"}=useParams();const title=ha
 export function SearchPage(){const [params,setParams]=useSearchParams();const [products,setProducts]=useState<Product[]>([]);const q=params.get("q")||"";useEffect(()=>{api<{products:Product[]}>("/api/products").then(x=>setProducts(x.products))},[]);const results=q?products.filter(p=>`${p.name} ${p.category} ${p.description}`.toLowerCase().includes(q.toLowerCase())):[];return <StoreShell><section className="search-page"><span>SEARCH THE STORE</span><h1>What are you looking for?</h1><form onSubmit={e=>{e.preventDefault();setParams({q:String(new FormData(e.currentTarget).get("q")||"")})}}><input name="q" defaultValue={q} placeholder="Search products" autoFocus/><button aria-label="Search"><Search/></button></form>{q&&<p>{results.length} results for “{q}”</p>}<div className="product-grid">{results.map(p=><ProductCard key={p.id} p={p}/>)}</div></section></StoreShell>}
 export function ShopInfo({type}:{type:"shipping"|"returns"|"faq"}){const content={shipping:{label:"SHIPPING & DELIVERY",title:"From our studio to your door",intro:"Orders are reviewed personally before delivery is arranged.",items:[["Where do you deliver?","Delivery is available across Nigeria. Timing and cost depend on your location and are confirmed after checkout."],["When will my order ship?","Available items are prepared after payment confirmation. Custom pieces may require additional production time."],["How do I receive updates?","We use the email and phone number supplied at checkout to confirm payment, delivery and fulfilment updates."]]},returns:{label:"RETURNS & EXCHANGES",title:"Purchase with confidence",intro:"We want every DE_JOY order to arrive as expected.",items:[["Can I return an item?","Contact us promptly after delivery. Eligibility depends on item condition, hygiene requirements and whether the piece was custom-made."],["What cannot be returned?","Used, opened hygiene-sensitive products and personalised or made-to-order pieces cannot normally be returned unless faulty."],["What if something is damaged?","Send clear photos and your order reference so the team can review the issue and arrange the appropriate resolution."]]},faq:{label:"FREQUENTLY ASKED QUESTIONS",title:"Everything you need to know",intro:"Quick answers about shopping with DE_JOY.",items:[["How do I pay?","Checkout creates your order request. The team then sends the approved offline payment instructions."],["Do I need an account?","No. You can shop and place an order as a guest."],["Can I change an order?","Contact the team immediately with your order reference. Changes depend on fulfilment status and availability."],["Are colours exact?","Screens and lighting can affect colour. Product photos are a close representation, but slight variation is possible."]]}}[type];return <StoreShell><section className="info-page"><span>{content.label}</span><h1>{content.title}</h1><p>{content.intro}</p><div>{content.items.map(([q,a])=><details key={q}><summary>{q}<Plus/></summary><p>{a}</p></details>)}</div></section></StoreShell>}
 export function TrackOrder(){const [result,setResult]=useState<any>(null);const [error,setError]=useState("");async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();const f=new FormData(e.currentTarget);try{setResult(await api(`/api/orders/track?number=${encodeURIComponent(String(f.get("number")))}&email=${encodeURIComponent(String(f.get("email")))}`));setError("")}catch(x){setResult(null);setError((x as Error).message)}}return <StoreShell><section className="track-page"><span>ORDER STATUS</span><h1>Track your order</h1><p>Enter your order reference and the email used at checkout.</p><form onSubmit={submit}><label>Order reference<input name="number" required placeholder="e.g. 1024"/></label><label>Email address<input name="email" type="email" required/></label><button className="store-button">Check status</button></form>{error&&<p className="form-error">{error}</p>}{result&&<article><b>Order #{result.order_number}</b><h2>{result.fulfillment_status}</h2><p>Payment: {result.payment_status}</p><small>Placed {new Date(result.created_at).toLocaleDateString()}</small></article>}</section></StoreShell>}
-export function ProductPage(){const {slug}=useParams();const [p,setP]=useState<Product|null>(null);const {add}=useCart();useEffect(()=>{api<Product>(`/api/products/${slug}`).then(setP)},[slug]);if(!p)return <div className="store-loading">Loading product…</div>;return <StoreShell><section className="product-detail"><div className="product-gallery">{p.images.length?p.images.map(i=><img key={i.id} src={i.url} alt={i.alt_text||p.name}/>):<div className="empty">No image</div>}</div><div className="product-info"><span>{p.category}</span><h1>{p.name}</h1><h2>{money(p.price)}</h2><p>{p.description||p.short_description}</p><button className="store-button wide" disabled={!p.inventory} onClick={()=>add(p)}>{p.inventory?"Add to bag":"Sold out"}</button><small>{p.inventory>0?`${p.inventory} available`:`Currently unavailable`}</small></div></section></StoreShell>}
-export function CartPage(){const {lines,setQty}=useCart();const total=lines.reduce((s,l)=>s+l.product.price*l.quantity,0);return <StoreShell><section className="cart-page"><h1>Your bag</h1>{!lines.length?<div className="empty"><p>Your bag is empty.</p><Link className="store-button" to="/store">Continue shopping</Link></div>:<><div className="cart-layout"><div>{lines.map(l=><article className="cart-line" key={l.product.id}>{l.product.images[0]&&<img src={l.product.images[0].url} alt=""/>}<div><h3>{l.product.name}</h3><p>{money(l.product.price)}</p><div className="qty"><button onClick={()=>setQty(l.product.id,l.quantity-1)}><Minus/></button><span>{l.quantity}</span><button onClick={()=>setQty(l.product.id,l.quantity+1)}><Plus/></button><button aria-label="Remove" onClick={()=>setQty(l.product.id,0)}><Trash2/></button></div></div></article>)}</div><aside><h2>Order summary</h2><p><span>Subtotal</span><b>{money(total)}</b></p><small>Delivery and offline payment details are confirmed after checkout.</small><Link className="store-button wide" to="/checkout">Checkout <ArrowRight/></Link></aside></div></>}</section></StoreShell>}
-export function CheckoutPage(){const {lines,clear}=useCart();const nav=useNavigate();const [error,setError]=useState("");async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();setError("");const fd=new FormData(e.currentTarget);try{const x=await api<{order_number:string}>("/api/orders",{method:"POST",body:JSON.stringify({customer_name:fd.get("name"),customer_email:fd.get("email"),customer_phone:fd.get("phone"),delivery_address:fd.get("address"),notes:fd.get("notes"),items:lines.map(l=>({product_id:l.product.id,quantity:l.quantity}))})});clear();nav(`/order-success?order=${x.order_number}`)}catch(err){setError((err as Error).message)}}if(!lines.length)return <CartPage/>;return <StoreShell><section className="checkout"><form onSubmit={submit}><span>SECURE CHECKOUT</span><h1>Complete your order</h1><div className="form-grid"><label>Full name<input name="name" required/></label><label>Email<input name="email" type="email" required/></label><label>Phone<input name="phone" required/></label><label className="wide">Delivery address<textarea name="address" required/></label><label className="wide">Order notes<textarea name="notes"/></label></div>{error&&<p className="form-error">{error}</p>}<button className="store-button wide">Place order</button></form><aside><h2>Your order</h2>{lines.map(l=><p key={l.product.id}><span>{l.product.name} × {l.quantity}</span><b>{money(l.product.price*l.quantity)}</b></p>)}<p className="checkout-total"><span>Total</span><b>{money(lines.reduce((s,l)=>s+l.product.price*l.quantity,0))}</b></p><small>No online payment is collected. Payment and fulfilment instructions follow after your order is reviewed.</small></aside></section></StoreShell>}
+export function ProductPage() {
+  const { slug } = useParams();
+  const [p, setP] = useState<Product | null>(null);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState(false);
+  const [error, setError] = useState("");
+  const { add } = useCart();
+
+  useEffect(() => {
+    setError("");
+    api<Product>(`/api/products/${slug}`).then(setP).catch((e) => setError(e.message));
+  }, [slug]);
+
+  if (error) return <StoreShell><section className="product-load-state"><AlertTriangle /><h1>Product unavailable</h1><p>{error}</p><Link className="store-button" to="/collections/all">Return to Shop All</Link></section></StoreShell>;
+  if (!p) return <StoreShell><div className="product-detail-skeleton"><div /><div /></div></StoreShell>;
+
+  const image = p.images[selectedImage] || p.images[0];
+  const addSelection = () => {
+    for (let index = 0; index < quantity; index += 1) add(p);
+    setAdded(true);
+    window.setTimeout(() => setAdded(false), 1800);
+  };
+
+  return (
+    <StoreShell>
+      <nav className="product-breadcrumb" aria-label="Breadcrumb"><Link to="/store">Home</Link><span>•</span><Link to="/collections/all">Shop all</Link><span>•</span><span>{p.name}</span></nav>
+      <section className="product-detail">
+        <div className="product-gallery">
+          <div className="product-main-image">{image ? <img src={image.url} alt={image.alt_text || p.name} /> : <div className="empty">No image</div>}</div>
+          {p.images.length > 1 && <div className="product-thumbnails" aria-label="Product images">{p.images.map((item, index) => <button key={item.id} className={selectedImage === index ? "active" : ""} onClick={() => setSelectedImage(index)} aria-label={`View image ${index + 1}`}><img src={item.url} alt="" /></button>)}</div>}
+        </div>
+        <div className="product-info">
+          <span>{p.category}</span>
+          <h1>{p.name}</h1>
+          <h2>{money(p.price)} {p.compare_at_price && <del>{money(p.compare_at_price)}</del>}</h2>
+          <p>{p.description || p.short_description}</p>
+          <div className="product-purchase">
+            <label>Quantity<div className="product-quantity"><button type="button" onClick={() => setQuantity((value) => Math.max(1, value - 1))} aria-label="Decrease quantity"><Minus /></button><span>{quantity}</span><button type="button" onClick={() => setQuantity((value) => Math.min(p.inventory, value + 1))} aria-label="Increase quantity"><Plus /></button></div></label>
+            <button className={`store-button wide ${added ? "added" : ""}`} disabled={!p.inventory || added} onClick={addSelection}>{added ? "Added to bag ✓" : p.inventory ? `Add to bag · ${money(p.price * quantity)}` : "Sold out"}</button>
+          </div>
+          <small className={p.inventory <= 5 ? "low-stock-note" : ""}>{p.inventory > 5 ? "In stock and ready to order" : p.inventory > 0 ? `Only ${p.inventory} available` : "Currently unavailable"}</small>
+          <div className="product-assurances">
+            <details open><summary>Product details <ChevronDown /></summary><p>{p.short_description || "A DE_JOY nail variation selected for a polished, confident finish."}</p></details>
+            <details><summary>Delivery across Nigeria <ChevronDown /></summary><p>Delivery timing and cost are confirmed after checkout based on your location.</p></details>
+            <details><summary>Personal support <ChevronDown /></summary><p>Questions about fit, finish, or your order are handled directly by the DE_JOY team.</p></details>
+          </div>
+        </div>
+      </section>
+    </StoreShell>
+  );
+}
+export function CartPage() {
+  const { lines, setQty } = useCart();
+  const total = lines.reduce((sum, line) => sum + line.product.price * line.quantity, 0);
+  return (
+    <StoreShell>
+      <section className="cart-page">
+        <div className="cart-title"><div><span>YOUR SELECTION</span><h1>Your bag</h1></div><Link to="/collections/all">Continue shopping <ArrowRight /></Link></div>
+        {!lines.length ? (
+          <div className="cart-empty-state"><ShoppingBag /><h2>Your bag is empty</h2><p>Explore the complete nail collection and find your next signature set.</p><Link className="store-button" to="/collections/all">Shop all nails</Link></div>
+        ) : (
+          <div className="cart-layout">
+            <div className="cart-lines">
+              {lines.map((line) => <article className="cart-line" key={line.product.id}>
+                <Link to={`/store/${line.product.slug}`}>{line.product.images[0] ? <img src={line.product.images[0].url} alt={line.product.images[0].alt_text || line.product.name} /> : <div className="thumb" />}</Link>
+                <div>
+                  <small>{line.product.category}</small>
+                  <Link to={`/store/${line.product.slug}`}><h3>{line.product.name}</h3></Link>
+                  <p>{money(line.product.price)} each</p>
+                  <div className="qty" aria-label={`Quantity for ${line.product.name}`}><button onClick={() => setQty(line.product.id, line.quantity - 1)} aria-label="Decrease quantity"><Minus /></button><span>{line.quantity}</span><button onClick={() => setQty(line.product.id, line.quantity + 1)} aria-label="Increase quantity"><Plus /></button></div>
+                </div>
+                <div className="cart-line-total"><b>{money(line.product.price * line.quantity)}</b><button aria-label={`Remove ${line.product.name}`} onClick={() => setQty(line.product.id, 0)}><Trash2 /></button></div>
+              </article>)}
+            </div>
+            <aside>
+              <h2>Order summary</h2>
+              <p><span>Subtotal</span><b>{money(total)}</b></p>
+              <p><span>Delivery</span><small>Confirmed after checkout</small></p>
+              <div className="summary-total"><span>Estimated total</span><strong>{money(total)}</strong></div>
+              <small>Payment and delivery instructions are confirmed personally after your order is reviewed.</small>
+              <Link className="store-button wide" to="/checkout">Continue to checkout <ArrowRight /></Link>
+              <div className="checkout-assurance"><ShieldCheck /><span><b>Personal confirmation</b><small>Your order is reviewed before payment.</small></span></div>
+            </aside>
+          </div>
+        )}
+      </section>
+    </StoreShell>
+  );
+}
+export function CheckoutPage() {
+  const { lines, clear } = useCart();
+  const nav = useNavigate();
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const total = lines.reduce((sum, line) => sum + line.product.price * line.quantity, 0);
+
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError("");
+    setSubmitting(true);
+    const fd = new FormData(e.currentTarget);
+    try {
+      const order = await api<{ order_number: string }>("/api/orders", {
+        method: "POST",
+        body: JSON.stringify({
+          customer_name: fd.get("name"),
+          customer_email: fd.get("email"),
+          customer_phone: fd.get("phone"),
+          delivery_address: fd.get("address"),
+          notes: fd.get("notes"),
+          items: lines.map((line) => ({ product_id: line.product.id, quantity: line.quantity })),
+        }),
+      });
+      clear();
+      nav(`/order-success?order=${order.order_number}`);
+    } catch (err) {
+      setError((err as Error).message);
+      setSubmitting(false);
+    }
+  }
+
+  if (!lines.length) return <CartPage />;
+  return (
+    <StoreShell>
+      <section className="checkout">
+        <form onSubmit={submit}>
+          <span>SECURE CHECKOUT</span>
+          <h1>Complete your order</h1>
+          <p className="checkout-intro">Enter the details DE_JOY should use to confirm payment and delivery.</p>
+          <div className="form-grid">
+            <label>Full name<input name="name" autoComplete="name" required /></label>
+            <label>Email<input name="email" type="email" autoComplete="email" required /></label>
+            <label>Phone<input name="phone" type="tel" autoComplete="tel" required /></label>
+            <label className="wide">Delivery address<textarea name="address" autoComplete="street-address" rows={4} required /></label>
+            <label className="wide">Order notes <small>Optional</small><textarea name="notes" rows={3} placeholder="Fit, style, delivery, or special-request details" /></label>
+          </div>
+          <label className="checkout-consent"><input type="checkbox" required /><span>I agree to the <Link to="/terms">Terms of Use</Link> and acknowledge the <Link to="/privacy">Privacy Policy</Link>.</span></label>
+          {error && <p className="form-error" role="alert"><AlertTriangle />{error}</p>}
+          <button className="store-button wide" disabled={submitting}>{submitting ? "Placing your order…" : "Place order request"}</button>
+          <small className="checkout-submit-note"><ShieldCheck /> No payment is collected on this screen.</small>
+        </form>
+        <aside>
+          <h2>Your order</h2>
+          <div className="checkout-lines">{lines.map((line) => <div className="checkout-line" key={line.product.id}>{line.product.images[0] && <img src={line.product.images[0].url} alt="" />}<span><b>{line.product.name}</b><small>Quantity {line.quantity}</small></span><strong>{money(line.product.price * line.quantity)}</strong></div>)}</div>
+          <p className="checkout-total"><span>Total</span><b>{money(total)}</b></p>
+          <small>Payment and fulfilment instructions follow after the DE_JOY team reviews your request.</small>
+        </aside>
+      </section>
+    </StoreShell>
+  );
+}
 export function OrderSuccess(){const q=new URLSearchParams(location.search);return <StoreShell><section className="success"><Package/><span>ORDER RECEIVED</span><h1>Thank you for your order.</h1><p>Your reference is <b>{q.get("order")}</b>. The DE_JOY team will contact you with offline payment and fulfilment details.</p><Link className="store-button" to="/store">Return to store</Link></section></StoreShell>}
 
 type AdminProduct=Partial<Product>&{images?:Product["images"]};
