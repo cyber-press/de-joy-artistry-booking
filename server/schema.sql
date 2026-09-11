@@ -80,6 +80,37 @@ INSERT INTO store_settings (key, value) VALUES
   ('contact', '{"whatsapp":"2347087777511","email":""}'::jsonb)
 ON CONFLICT (key) DO NOTHING;
 
+-- Seed the booking portfolio as editable draft products. Draft status prevents
+-- unpriced defaults from appearing in the public store.
+WITH booking_products(id,title,slug,description,category) AS (
+  VALUES
+    ('10000000-0000-4000-8000-000000000001'::uuid,'Signature Nude Set','signature-nude-set','A refined nude manicure from the DE_JOY booking portfolio.','Signature sets'),
+    ('10000000-0000-4000-8000-000000000002'::uuid,'Soft Pink Glow','soft-pink-glow','A soft pink, high-gloss manicure from the DE_JOY booking portfolio.','Signature sets'),
+    ('10000000-0000-4000-8000-000000000003'::uuid,'Classic French Detail','classic-french-detail','A clean French-inspired finish from the DE_JOY booking portfolio.','Nail artistry'),
+    ('10000000-0000-4000-8000-000000000004'::uuid,'Sculpted Editorial Set','sculpted-editorial-set','An editorial sculpted nail look from the DE_JOY booking portfolio.','Nail artistry'),
+    ('10000000-0000-4000-8000-000000000005'::uuid,'Everyday Gloss Set','everyday-gloss-set','A wearable glossy set from the DE_JOY booking portfolio.','Signature sets'),
+    ('10000000-0000-4000-8000-000000000006'::uuid,'Statement Finish','statement-finish','A statement manicure from the DE_JOY booking portfolio.','Nail artistry'),
+    ('10000000-0000-4000-8000-000000000007'::uuid,'Luxury Booking Experience','luxury-booking-experience','The signature DE_JOY booking campaign image.','Booking portfolio')
+)
+INSERT INTO products (id,title,slug,description,price_minor,inventory,status,category,featured)
+SELECT id,title,slug,description,0,0,'draft',category,false FROM booking_products
+ON CONFLICT DO NOTHING;
+
+WITH booking_images(id,product_id,url,alt_text) AS (
+  VALUES
+    ('20000000-0000-4000-8000-000000000001'::uuid,'10000000-0000-4000-8000-000000000001'::uuid,'https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=1200&q=88','Signature nude manicure'),
+    ('20000000-0000-4000-8000-000000000002'::uuid,'10000000-0000-4000-8000-000000000002'::uuid,'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?auto=format&fit=crop&w=1000&q=84','Soft pink manicure'),
+    ('20000000-0000-4000-8000-000000000003'::uuid,'10000000-0000-4000-8000-000000000003'::uuid,'https://images.unsplash.com/photo-1604902396830-aca29e19b067?auto=format&fit=crop&w=1000&q=84','Classic detailed manicure'),
+    ('20000000-0000-4000-8000-000000000004'::uuid,'10000000-0000-4000-8000-000000000004'::uuid,'https://images.unsplash.com/photo-1610992015732-2449b76344bc?auto=format&fit=crop&w=1000&q=84','Sculpted editorial nails'),
+    ('20000000-0000-4000-8000-000000000005'::uuid,'10000000-0000-4000-8000-000000000005'::uuid,'https://images.unsplash.com/photo-1632345031435-8727f6897d53?auto=format&fit=crop&w=1000&q=84','Everyday glossy manicure'),
+    ('20000000-0000-4000-8000-000000000006'::uuid,'10000000-0000-4000-8000-000000000006'::uuid,'https://images.unsplash.com/photo-1619451334792-150fd785ee74?auto=format&fit=crop&w=1000&q=84','Statement manicure'),
+    ('20000000-0000-4000-8000-000000000007'::uuid,'10000000-0000-4000-8000-000000000007'::uuid,'https://images.pexels.com/photos/16363470/pexels-photo-16363470.jpeg?auto=compress&cs=tinysrgb&w=1600','Luxury DE_JOY booking experience')
+)
+INSERT INTO product_images (id,product_id,url,alt_text,position)
+SELECT i.id,i.product_id,i.url,i.alt_text,0 FROM booking_images i
+JOIN products p ON p.id=i.product_id
+ON CONFLICT (id) DO NOTHING;
+
 CREATE INDEX IF NOT EXISTS idx_products_status ON products(status);
 CREATE INDEX IF NOT EXISTS idx_product_images_product ON product_images(product_id, position);
 CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at DESC);
