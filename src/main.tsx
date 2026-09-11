@@ -20,11 +20,13 @@ import {
   Menu,
   MessageCircle,
   ShieldCheck,
+  ShoppingBag,
   Sparkles,
   Star,
   X,
 } from "lucide-react";
 import "./styles.css";
+import { Admin, CartPage, CheckoutPage, OrderSuccess, ProductPage, StoreHome, StoreProvider, useCart } from "./store";
 
 type Choice = { name: string; description: string; image: string };
 type BookingData = {
@@ -157,6 +159,7 @@ const imgError = (event: React.SyntheticEvent<HTMLImageElement>) => {
 function App() {
   return (
     <BrowserRouter>
+      <StoreProvider>
       <RouteReset />
       <MotionEffects />
       <Header />
@@ -165,6 +168,12 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/services" element={<Services />} />
           <Route path="/book" element={<Book />} />
+          <Route path="/store" element={<StoreHome />} />
+          <Route path="/store/:slug" element={<ProductPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order-success" element={<OrderSuccess />} />
+          <Route path="/admin/*" element={<Admin />} />
           <Route path="/privacy" element={<Legal type="privacy" />} />
           <Route path="/terms" element={<Legal type="terms" />} />
           <Route path="*" element={<Home />} />
@@ -172,6 +181,7 @@ function App() {
       </main>
       <FloatingWhatsApp />
       <Footer />
+      </StoreProvider>
     </BrowserRouter>
   );
 }
@@ -1064,6 +1074,7 @@ function SectionHead({
   );
 }
 function Header() {
+  const { lines } = useCart();
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   useEffect(() => setOpen(false), [pathname]);
@@ -1082,9 +1093,13 @@ function Header() {
           <NavLink to="/">Home</NavLink>
           <NavLink to="/services">Services</NavLink>
           <NavLink to="/book">Booking</NavLink>
+          <NavLink to="/store">Store</NavLink>
         </nav>
         <Link className="header-book" to="/book">
           Book now <ArrowRight />
+        </Link>
+        <Link className="header-cart" to="/cart" aria-label="Shopping bag">
+          <ShoppingBag /> <span>{lines.reduce((n, line) => n + line.quantity, 0)}</span>
         </Link>
         <button
           className="menu-button"
@@ -1104,6 +1119,8 @@ function Header() {
         <NavLink to="/">Home</NavLink>
         <NavLink to="/services">Services</NavLink>
         <NavLink to="/book">Booking</NavLink>
+        <NavLink to="/store">Store</NavLink>
+        <NavLink to="/cart">Bag ({lines.reduce((n, line) => n + line.quantity, 0)})</NavLink>
       </nav>
     </header>
   );
@@ -1207,6 +1224,7 @@ function Footer() {
           <Link to="/">Home</Link>
           <Link to="/services">Services</Link>
           <Link to="/book">Booking</Link>
+          <Link to="/store">Store</Link>
           <Link to="/privacy">Privacy</Link>
           <Link to="/terms">Terms</Link>
         </nav>
