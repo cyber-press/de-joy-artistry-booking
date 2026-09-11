@@ -101,6 +101,9 @@ small {
 .header-book {
   display: none;
 }
+.header-cart { position: relative; display: grid; place-items: center; width: 2.7rem; height: 2.7rem; }
+.header-cart svg { width: 1.25rem; }
+.header-cart span { position: absolute; right: .05rem; top: .05rem; min-width: 1.1rem; height: 1.1rem; border-radius: 50%; display: grid; place-items: center; background: var(--rose); color: white; font-size: .62rem; }
 .menu-button {
   width: 3rem;
   height: 3rem;
