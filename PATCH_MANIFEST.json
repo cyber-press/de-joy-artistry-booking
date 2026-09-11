@@ -1,6 +1,6 @@
 {
-  "buildId": "dejoy-hero-editorial-v2",
-  "summary": "Executive header and seamlessly blended editorial hero upgrade",
+  "buildId": "dejoy-hero-editorial-v2.1",
+  "summary": "Executive header readability and standardized hero dimensions",
   "changes": [
     "Repositioned the homepage with premium editorial messaging and hierarchy",
     "Added trust indicators, experience standards, service routing and a closing CTA",
@@ -12,6 +12,8 @@
     "Added reduced-motion accessibility support and responsive executive styling",
     "Increased logo, navigation and booking CTA readability",
     "Rebuilt the homepage hero as a unified image and content composition",
-    "Introduced the approved Where Beauty Meets the Art of You positioning"
+    "Introduced the approved Where Beauty Meets the Art of You positioning",
+    "Increased desktop navigation and Book Now typography",
+    "Standardized the hero to a 1440px container and viewport-aware 576–736px height"
   ]
 }
