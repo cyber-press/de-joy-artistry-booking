@@ -226,8 +226,8 @@ function Home() {
           </div>
           <div className="hero-image">
             <img
-              src="https://images.pexels.com/photos/34373403/pexels-photo-34373403.jpeg?auto=compress&cs=tinysrgb&w=1600"
-              alt="Elegant manicured hands styled with gold jewellery"
+              src="https://images.pexels.com/photos/16363470/pexels-photo-16363470.jpeg?auto=compress&cs=tinysrgb&w=1600"
+              alt="Elegant glitter manicure styled against soft pink fabric"
               onError={imgError}
             />
           </div>
