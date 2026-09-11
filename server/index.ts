@@ -32,7 +32,7 @@ const productSchema = z.object({ name: z.string().min(2).max(120), slug: z.strin
 const credentialsSchema = z.object({ email: z.string().email().transform(v => v.toLowerCase()), password: z.string().min(12).max(128), displayName: z.string().min(2).max(80).default("Store Owner") });
 
 async function products(includePrivate = false) {
-  const result = await query(`SELECT p.id,p.title name,p.slug,p.description,p.description short_description,p.price_minor price,p.compare_at_minor compare_at_price,p.inventory,p.status,p.category,p.featured,p.created_at,p.updated_at,COALESCE(json_agg(json_build_object('id',i.id,'url',i.url,'alt_text',i.alt_text,'position',i.position) ORDER BY i.position) FILTER (WHERE i.id IS NOT NULL),'[]') images FROM products p LEFT JOIN product_images i ON i.product_id=p.id ${includePrivate ? "" : "WHERE p.status='active'"} GROUP BY p.id ORDER BY p.featured DESC,p.created_at DESC`);
+  const result = await query(`SELECT p.id,p.title name,p.slug,p.description,p.description short_description,p.price_minor price,p.compare_at_minor compare_at_price,p.inventory,p.status,p.category,p.featured,p.created_at,p.updated_at,(SELECT COALESCE(SUM(oi.quantity),0)::int FROM order_items oi WHERE oi.product_id=p.id) sold_count,COALESCE(json_agg(json_build_object('id',i.id,'url',i.url,'alt_text',i.alt_text,'position',i.position) ORDER BY i.position) FILTER (WHERE i.id IS NOT NULL),'[]') images FROM products p LEFT JOIN product_images i ON i.product_id=p.id ${includePrivate ? "" : "WHERE p.status='active'"} GROUP BY p.id ORDER BY p.featured DESC,p.created_at DESC`);
   return result.rows;
 }
 
