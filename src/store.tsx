@@ -1216,15 +1216,38 @@ function AdminAuth({
 function AdminProducts() {
   const [items, setItems] = useState<Product[]>([]);
   const [edit, setEdit] = useState<AdminProduct | null>(null);
-  const load = () =>
-    api<{ products: Product[] }>("/api/admin/products").then((x) =>
-      setItems(x.products),
-    );
+  const [query, setQuery] = useState("");
+  const [view, setView] = useState("all");
+  const [selected, setSelected] = useState<string[]>([]);
+  const [notice, setNotice] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const load = async () => {
+    const x = await api<{ products: Product[] }>("/api/admin/products");
+    setItems(x.products);
+    return x.products;
+  };
   useEffect(() => {
     load();
   }, []);
+
+  const visible = items.filter((p) => {
+    const matchView = view === "all" || p.status === view;
+    const haystack = `${p.name} ${p.category} ${p.slug}`.toLowerCase();
+    return matchView && haystack.includes(query.toLowerCase());
+  });
+  const counts = {
+    all: items.length,
+    active: items.filter((p) => p.status === "active").length,
+    draft: items.filter((p) => p.status === "draft").length,
+    archived: items.filter((p) => p.status === "archived").length,
+  };
+  const categories = [...new Set(items.map((p) => p.category).filter(Boolean))];
+
   async function save(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setSaving(true);
+    setNotice("");
     const f = new FormData(e.currentTarget);
     const body = {
       name: f.get("name"),
@@ -1240,135 +1263,207 @@ function AdminProducts() {
       status: f.get("status"),
       featured: f.get("featured") === "on",
     };
-    await api(
-      edit?.id ? `/api/admin/products/${edit.id}` : "/api/admin/products",
-      { method: edit?.id ? "PUT" : "POST", body: JSON.stringify(body) },
-    );
-    setEdit(null);
-    load();
+    try {
+      await api(
+        edit?.id ? `/api/admin/products/${edit.id}` : "/api/admin/products",
+        { method: edit?.id ? "PUT" : "POST", body: JSON.stringify(body) },
+      );
+      setEdit(null);
+      await load();
+      setNotice(edit?.id ? "Product updated." : "Product created.");
+    } catch (error) {
+      setNotice((error as Error).message);
+    } finally {
+      setSaving(false);
+    }
   }
+
+  async function removeProduct(product: Product) {
+    if (!window.confirm(`Permanently delete “${product.name}”? This cannot be undone.`)) return;
+    await api(`/api/admin/products/${product.id}`, { method: "DELETE" });
+    setEdit(null);
+    setSelected((current) => current.filter((id) => id !== product.id));
+    await load();
+    setNotice("Product deleted.");
+  }
+
+  async function removeSelected() {
+    if (!selected.length || !window.confirm(`Permanently delete ${selected.length} selected products?`)) return;
+    await Promise.all(selected.map((id) => api(`/api/admin/products/${id}`, { method: "DELETE" })));
+    setSelected([]);
+    await load();
+    setNotice("Selected products deleted.");
+  }
+
+  async function refreshEditor(productId: string) {
+    const next = await load();
+    const current = next.find((p) => p.id === productId);
+    if (current) setEdit(current);
+  }
+
+  if (edit) {
+    return (
+      <section className="product-editor">
+        <header className="admin-head product-editor-head">
+          <div>
+            <button className="back-link" onClick={() => setEdit(null)}>‹ Products</button>
+            <h1>{edit.id ? edit.name : "Add product"}</h1>
+            <p>{edit.id ? "Update product content, media, pricing and availability." : "Create a new item for the DE_JOY catalogue."}</p>
+          </div>
+          <div className="editor-head-actions">
+            {edit.id && <a href={`/store/${edit.slug}`} target="_blank">Preview <ExternalLink /></a>}
+            <button type="button" onClick={() => setEdit(null)}>Cancel</button>
+            <button className="store-button" form="product-editor-form" disabled={saving}>
+              {saving ? "Saving…" : "Save"}
+            </button>
+          </div>
+        </header>
+        <form id="product-editor-form" className="shopify-editor" onSubmit={save}>
+          <div className="editor-primary">
+            <section className="admin-card">
+              <label>
+                Title
+                <input name="name" defaultValue={edit.name} placeholder="Short, recognizable product name" required />
+              </label>
+              <label>
+                Description
+                <textarea name="description" defaultValue={edit.description} rows={7} placeholder="Describe the finish, fit, materials and care." />
+              </label>
+              <label>
+                Short description
+                <input name="short" defaultValue={edit.short_description} placeholder="One-line storefront summary" />
+              </label>
+            </section>
+            <section className="admin-card">
+              <div className="card-title">
+                <div><h2>Media</h2><p>Add images customers can inspect before checkout.</p></div>
+              </div>
+              {edit.id ? (
+                <ImageManager product={edit as Product} onChange={() => refreshEditor(edit.id!)} />
+              ) : (
+                <div className="media-save-first"><ImagePlus /><b>Save this product to add media</b><span>You can upload up to 12 JPG, PNG, WebP or AVIF images.</span></div>
+              )}
+            </section>
+            <section className="admin-card">
+              <h2>Pricing</h2>
+              <div className="form-grid">
+                <label>
+                  Price (NGN)
+                  <div className="money-input"><span>₦</span><input name="price" type="number" min="0" step="0.01" defaultValue={(edit.price || 0) / 100} required /></div>
+                </label>
+                <label>
+                  Compare-at price
+                  <div className="money-input"><span>₦</span><input name="compare" type="number" min="0" step="0.01" defaultValue={edit.compare_at_price ? edit.compare_at_price / 100 : ""} /></div>
+                </label>
+              </div>
+              <small className="field-help">Use compare-at price to display a markdown. Leave it blank when the product is not on sale.</small>
+            </section>
+            <section className="admin-card">
+              <h2>Inventory</h2>
+              <label>
+                Quantity available
+                <input name="inventory" type="number" min="0" defaultValue={edit.inventory} />
+              </label>
+            </section>
+          </div>
+          <aside className="editor-secondary">
+            <section className="admin-card">
+              <h2>Status</h2>
+              <select name="status" defaultValue={edit.status || "draft"}>
+                <option value="active">Active</option>
+                <option value="draft">Draft</option>
+                <option value="archived">Archived</option>
+              </select>
+              <p className="field-help">Only active products appear in the storefront.</p>
+            </section>
+            <section className="admin-card">
+              <h2>Publishing</h2>
+              <label className="switch-row">
+                <span><b>Featured product</b><small>Prioritize this item in collections.</small></span>
+                <input name="featured" type="checkbox" defaultChecked={edit.featured} />
+              </label>
+            </section>
+            <section className="admin-card">
+              <h2>Product organization</h2>
+              <label>
+                Category
+                <input name="category" list="product-categories" defaultValue={edit.category} placeholder="e.g. Press-ons" />
+                <datalist id="product-categories">{categories.map((category) => <option key={category} value={category} />)}</datalist>
+              </label>
+              <label>
+                URL handle
+                <input name="slug" defaultValue={edit.slug} placeholder="Generated from title if blank" />
+              </label>
+            </section>
+            {edit.id && (
+              <section className="admin-card danger-card">
+                <h2>Delete product</h2>
+                <p>Permanently removes this product and its media from the catalogue.</p>
+                <button type="button" onClick={() => removeProduct(edit as Product)}><Trash2 /> Delete product</button>
+              </section>
+            )}
+          </aside>
+        </form>
+      </section>
+    );
+  }
+
   return (
     <>
-      <header className="admin-head">
+      <header className="admin-head products-head">
         <div>
           <span>CATALOGUE</span>
           <h1>Products</h1>
+          <p>Manage inventory, media, pricing and storefront availability.</p>
         </div>
-        <button
-          className="store-button"
-          onClick={() => setEdit({ status: "draft", inventory: 0, price: 0 })}
-        >
-          <Plus />
-          Add product
+        <button className="store-button" onClick={() => setEdit({ status: "draft", inventory: 0, price: 0, category: "Nail care", images: [] })}>
+          <Plus /> Add product
         </button>
       </header>
-      {edit && (
-        <form className="admin-form" onSubmit={save}>
-          <h2>{edit.id ? "Edit product" : "New product"}</h2>
-          <div className="form-grid">
-            <label>
-              Name
-              <input name="name" defaultValue={edit.name} required />
-            </label>
-            <label>
-              URL slug
-              <input name="slug" defaultValue={edit.slug} required />
-            </label>
-            <label>
-              Category
-              <input name="category" defaultValue={edit.category} />
-            </label>
-            <label>
-              Price (NGN)
-              <input
-                name="price"
-                type="number"
-                min="0"
-                defaultValue={(edit.price || 0) / 100}
-                required
-              />
-            </label>
-            <label>
-              Compare at price
-              <input
-                name="compare"
-                type="number"
-                min="0"
-                defaultValue={
-                  edit.compare_at_price ? edit.compare_at_price / 100 : ""
-                }
-              />
-            </label>
-            <label>
-              Inventory
-              <input
-                name="inventory"
-                type="number"
-                min="0"
-                defaultValue={edit.inventory}
-              />
-            </label>
-            <label>
-              Status
-              <select name="status" defaultValue={edit.status}>
-                <option value="draft">Draft</option>
-                <option value="active">Active</option>
-                <option value="archived">Archived</option>
-              </select>
-            </label>
-            <label>
-              Featured
-              <input
-                name="featured"
-                type="checkbox"
-                defaultChecked={edit.featured}
-              />
-            </label>
-            <label className="wide">
-              Short description
-              <input name="short" defaultValue={edit.short_description} />
-            </label>
-            <label className="wide">
-              Description
-              <textarea name="description" defaultValue={edit.description} />
-            </label>
-          </div>
-          <div className="admin-actions">
-            <button type="button" onClick={() => setEdit(null)}>
-              Cancel
+      {notice && <div className="admin-notice success">{notice}<button onClick={() => setNotice("")}>×</button></div>}
+      <section className="product-admin-card">
+        <nav className="product-views" aria-label="Product status filters">
+          {(["all", "active", "draft", "archived"] as const).map((id) => (
+            <button key={id} className={view === id ? "active" : ""} onClick={() => setView(id)}>
+              {id[0].toUpperCase() + id.slice(1)} <span>{counts[id]}</span>
             </button>
-            <button className="store-button">Save product</button>
+          ))}
+        </nav>
+        <div className="product-toolbar">
+          <label className="admin-search"><Search /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search products" /></label>
+          <button className="filter-button"><span>Sort: Newest</span><ChevronDown /></button>
+        </div>
+        {selected.length > 0 && (
+          <div className="bulk-bar">
+            <b>{selected.length} selected</b>
+            <button onClick={removeSelected}><Trash2 /> Delete products</button>
           </div>
-          {edit.id && (
-            <ImageManager
-              product={edit as Product}
-              onChange={() => {
-                load();
-                api<Product[]>(`/api/admin/products`).catch(() => {});
-              }}
-            />
-          )}
-        </form>
-      )}
-      <div className="admin-table">
-        {items.map((p) => (
-          <article key={p.id}>
-            {p.images[0] ? (
-              <img src={p.images[0].url} alt="" />
-            ) : (
-              <div className="thumb" />
-            )}
-            <div>
-              <h3>{p.name}</h3>
-              <small>
-                {p.status} · {p.inventory} in stock
-              </small>
+        )}
+        <div className="products-table" role="table" aria-label="Products">
+          <div className="products-row products-columns" role="row">
+            <label><input type="checkbox" checked={visible.length > 0 && visible.every((p) => selected.includes(p.id))} onChange={(e) => setSelected(e.target.checked ? visible.map((p) => p.id) : [])} /><span className="sr-only">Select all products</span></label>
+            <span>Product</span><span>Status</span><span>Inventory</span><span>Category</span><span>Price</span><span></span>
+          </div>
+          {visible.map((p) => (
+            <div className="products-row" role="row" key={p.id}>
+              <label><input type="checkbox" checked={selected.includes(p.id)} onChange={(e) => setSelected((current) => e.target.checked ? [...current, p.id] : current.filter((id) => id !== p.id))} /><span className="sr-only">Select {p.name}</span></label>
+              <button className="product-identity" onClick={() => setEdit(p)}>
+                {p.images[0] ? <img src={p.images[0].url} alt="" /> : <div className="thumb"><ImagePlus /></div>}
+                <span><b>{p.name}</b><small>{p.images.length} {p.images.length === 1 ? "image" : "images"}</small></span>
+              </button>
+              <span><b className={`product-status ${p.status}`}>{p.status}</b></span>
+              <span className={p.inventory <= 5 ? "inventory-low" : ""}>{p.inventory} in stock</span>
+              <span>{p.category || "Uncategorized"}</span>
+              <b>{money(p.price)}</b>
+              <button className="row-action" aria-label={`Edit ${p.name}`} onClick={() => setEdit(p)}>Edit</button>
             </div>
-            <b>{money(p.price)}</b>
-            <button onClick={() => setEdit(p)}>Edit</button>
-          </article>
-        ))}
-      </div>
+          ))}
+          {!visible.length && (
+            <div className="products-empty"><Package /><h2>No products found</h2><p>Adjust the filters or add a new product to the catalogue.</p></div>
+          )}
+        </div>
+        <footer className="products-footer">Showing {visible.length} of {items.length} products</footer>
+      </section>
     </>
   );
 }
@@ -1379,41 +1474,42 @@ function ImageManager({
   product: Product;
   onChange: () => void;
 }) {
+  const [uploading, setUploading] = useState(false);
   async function upload(e: React.ChangeEvent<HTMLInputElement>) {
-    if (!e.target.files?.[0]) return;
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const remaining = Math.max(0, 12 - (product.images?.length || 0));
     const f = new FormData();
-    f.append("image", e.target.files[0]);
-    await api(`/api/admin/products/${product.id}/images`, {
-      method: "POST",
-      body: f,
-    });
-    onChange();
+    files.slice(0, remaining).forEach((file) => f.append("images", file));
+    setUploading(true);
+    try {
+      await api(`/api/admin/products/${product.id}/images`, { method: "POST", body: f });
+      onChange();
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
   }
   return (
     <div className="image-manager">
-      <h3>Product images</h3>
-      <div>
-        {product.images?.map((i) => (
-          <figure key={i.id}>
-            <img src={i.url} />
-            <button
-              type="button"
-              onClick={() =>
-                api(`/api/admin/images/${i.id}`, { method: "DELETE" }).then(
-                  onChange,
-                )
-              }
-            >
-              <Trash2 />
-            </button>
+      <div className="product-media-grid">
+        {product.images?.map((image, index) => (
+          <figure key={image.id} className={index === 0 ? "primary-media" : ""}>
+            <img src={image.url} alt={image.alt_text || product.name} />
+            {index === 0 && <figcaption>Primary</figcaption>}
+            <button type="button" aria-label="Delete image" onClick={() => {
+              if (window.confirm("Delete this product image?")) api(`/api/admin/images/${image.id}`, { method: "DELETE" }).then(onChange);
+            }}><Trash2 /></button>
           </figure>
         ))}
-        <label>
-          <ImagePlus />
-          Upload image
-          <input hidden type="file" accept="image/*" onChange={upload} />
-        </label>
+        {(product.images?.length || 0) < 12 && (
+          <label className="media-upload">
+            <ImagePlus /><b>{uploading ? "Uploading…" : "Add media"}</b><span>Choose one or multiple images</span>
+            <input hidden multiple disabled={uploading} type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={upload} />
+          </label>
+        )}
       </div>
+      <small className="field-help">{product.images?.length || 0} of 12 images. The first image is used as the storefront cover.</small>
     </div>
   );
 }
