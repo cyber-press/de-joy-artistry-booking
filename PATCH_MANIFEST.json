@@ -1,7 +1,14 @@
 {
-  "buildId": "dejoy-shopify-commerce-v3.1",
-  "summary": "Shopify-inspired admin product management and complete Shop All nail collection",
+  "buildId": "dejoy-commerce-usability-v3.2",
+  "summary": "End-to-end commerce usability refinement across discovery, product, cart, checkout and administration",
   "changes": [
+    "Completed a source-level usability audit after the hosted URL was blocked in the cloud testing browser",
+    "Rebuilt product detail pages with primary media, selectable thumbnails, quantity controls, stock messaging and expandable assurances",
+    "Added clear add-to-bag confirmation states and secondary-image hover previews",
+    "Upgraded the cart with linked products, line totals, quantity labeling, estimated total and checkout assurance",
+    "Upgraded checkout with autocomplete, submission locking, error alerts, item thumbnails and policy acknowledgment",
+    "Enhanced search with collection suggestions, result counts, loading treatment and a recoverable no-results state",
+    "Enhanced admin Orders with status tabs, counts, search and inline fulfilment controls",
     "Rebuilt Shop All with breadcrumb-led hierarchy, a three-column product grid and responsive collection layout",
     "Added collection, availability and naira price filters with clear-filter states",
     "Added eight sort modes: Featured, Newest, Best selling, price, alphabetic and Oldest",
