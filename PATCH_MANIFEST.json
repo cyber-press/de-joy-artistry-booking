@@ -1,7 +1,13 @@
 {
-  "buildId": "dejoy-commerce-usability-v3.2",
-  "summary": "End-to-end commerce usability refinement across discovery, product, cart, checkout and administration",
+  "buildId": "dejoy-runtime-catalog-hotfix-v3.3",
+  "summary": "Restore visible starter products and provide the correct dynamic Render deployment architecture",
   "changes": [
+    "Diagnosed the empty Shop All page as a static-hosting/runtime mismatch",
+    "Added a resilient seven-product storefront fallback when the public products API is unavailable or empty",
+    "Restored complete Product typing for created dates and best-selling sort counts",
+    "Added render.yaml for a Docker web service, private PostgreSQL connection, health check and persistent upload disk",
+    "Locked PostgreSQL external access while retaining Render private-network connectivity",
+    "Corrected deployment documentation to prohibit static-only production hosting",
     "Completed a source-level usability audit after the hosted URL was blocked in the cloud testing browser",
     "Rebuilt product detail pages with primary media, selectable thumbnails, quantity controls, stock messaging and expandable assurances",
     "Added clear add-to-bag confirmation states and secondary-image hover previews",
@@ -21,9 +27,9 @@
   ],
   "ownership": "PressCreates LLC",
   "deployment": [
-    "Run the PostgreSQL schema migration during application startup to seed the starter collection",
-    "Review and replace placeholder prices from the Products administration workspace",
-    "Ensure UPLOAD_DIR is mapped to persistent storage in production",
-    "Render should deploy automatically after merge"
+    "Merge this hotfix so the current static storefront immediately displays the starter catalog",
+    "Create or sync the render.yaml Blueprint to provision the dynamic commerce web service",
+    "Move dejoyartistry.com from the static service to the new web service after health and admin checks pass",
+    "Retrieve SETUP_TOKEN from the Render web service environment and create the owner account at /admin"
   ]
 }
