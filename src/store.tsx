@@ -17,7 +17,139 @@ function StoreShell({children}:{children:React.ReactNode}){const [s,setS]=useSta
 function ProductCard({p}:{p:Product}){const {add}=useCart();return <article className="product-card"><Link to={`/store/${p.slug}`} className="product-media">{p.images[0]?<img src={p.images[0].url} alt={p.images[0].alt_text||p.name}/>:<span>No image</span>}{p.compare_at_price&&<b>Sale</b>}</Link><div><small>{p.category||"DE_JOY EDIT"}</small><Link to={`/store/${p.slug}`}><h3>{p.name}</h3></Link><p>{money(p.price)} {p.compare_at_price&&<del>{money(p.compare_at_price)}</del>}</p><button className="store-button" disabled={!p.inventory} onClick={()=>add(p)}>{p.inventory?"Add to bag":"Sold out"}</button></div></article>}
 export function StoreHome(){const [products,setProducts]=useState<Product[]>([]);useEffect(()=>{api<{products:Product[]}>("/api/products").then(x=>setProducts(x.products))},[]);const categories=[...new Set(products.map(p=>p.category).filter(Boolean))];return <StoreShell><section className="store-hero"><div><span>THE DE_JOY STORE</span><h1>The art of beautiful<br/><em>finishing touches.</em></h1><p>Discover nail essentials, signature press-ons and considered beauty pieces curated to elevate your everyday ritual.</p><Link to="/collections/all" className="store-button">Shop new arrivals <ArrowRight/></Link></div></section><section className="shop-promises"><div><Truck/><span><b>Delivery across Nigeria</b><small>Confirmed after checkout</small></span></div><div><ShieldCheck/><span><b>Carefully selected</b><small>Quality-led essentials</small></span></div><div><Sparkles/><span><b>The DE_JOY standard</b><small>Distinctive, considered beauty</small></span></div></section><section className="collection-cards"><header><span>SHOP BY COLLECTION</span><h2>Find your finishing touch</h2></header><div>{(categories.length?categories:["Nail care","Press-ons","Beauty tools"]).slice(0,3).map((c,i)=><Link key={c} to={`/collections/${encodeURIComponent(c.toLowerCase().replace(/\s+/g,"-"))}`}><div className={`collection-art art-${i+1}`}/><span>COLLECTION {String(i+1).padStart(2,"0")}</span><h3>{c}</h3><p>Explore the edit <ArrowRight/></p></Link>)}</div></section><section id="collection" className="store-section"><header><span>CURATED FOR YOU</span><h2>New and noteworthy</h2><p>Fresh additions and DE_JOY favourites, selected with intention.</p></header><div className="product-grid">{products.slice(0,6).map(p=><ProductCard key={p.id} p={p}/>)}{!products.length&&<p className="empty">The first collection is being prepared.</p>}</div><div className="section-action"><Link className="store-button" to="/collections/all">View all products <ArrowRight/></Link></div></section><section className="shop-editorial"><div/><article><span>THE DE_JOY EDIT</span><h2>Thoughtful details.<br/>Effortless confidence.</h2><p>Every item earns its place through quality, usefulness and the ability to make your beauty ritual feel more considered.</p><Link to="/collections/all">Discover the collection <ArrowRight/></Link></article></section></StoreShell>}
 
-function Catalogue({title,category}:{title:string;category?:string}){const [products,setProducts]=useState<Product[]>([]);const [sort,setSort]=useState("featured");const [stock,setStock]=useState(false);const [loading,setLoading]=useState(true);useEffect(()=>{api<{products:Product[]}>("/api/products").then(x=>setProducts(x.products)).finally(()=>setLoading(false))},[]);let shown=products.filter(p=>(!category||category==="all"||p.category.toLowerCase().replace(/\s+/g,"-")===category)&&(!stock||p.inventory>0));shown=[...shown].sort((a,b)=>sort==="price-low"?a.price-b.price:sort==="price-high"?b.price-a.price:sort==="name"?a.name.localeCompare(b.name):Number(b.featured)-Number(a.featured));const suggested=products.filter(p=>!shown.some(x=>x.id===p.id)).slice(0,3);return <StoreShell><section className={`collection-head collection-${category||'all'}`}><div className="collection-head-copy"><span>DE_JOY COLLECTION</span><h1>{title}</h1><p>{category==='press-ons'?'Salon-worthy artistry, sized for you and designed to wear beautifully—wherever your moment takes you.':'Distinctive beauty essentials, selected to complement your style and elevate your ritual.'}</p></div><div className="collection-head-art" aria-hidden="true"/></section><section className="catalogue">{loading?<div className="collection-loading"><div/><div/><div/></div>:shown.length?<><div className="catalogue-bar"><p><b>{shown.length}</b> {shown.length===1?'product':'products'}</p><label><input type="checkbox" checked={stock} onChange={e=>setStock(e.target.checked)}/> Available now</label><label><span>Sort by</span><select value={sort} onChange={e=>setSort(e.target.value)}><option value="featured">Featured</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option><option value="name">Alphabetically</option></select><ChevronDown/></label></div><div className="product-grid">{shown.map(p=><ProductCard key={p.id} p={p}/>)}</div></>:<section className="collection-empty"><div className="empty-visual"><span>COMING SOON</span></div><div><span>THE NEXT DE_JOY DROP</span><h2>This collection is<br/><em>being perfected.</em></h2><p>We are thoughtfully preparing pieces worthy of your ritual. Explore the complete edit now, or check back for the first release.</p><div><Link className="store-button" to="/collections/all">Shop all products <ArrowRight/></Link><Link className="collection-text-link" to="/store">Return to store</Link></div></div></section>}{!shown.length&&suggested.length>0&&<section className="recommended"><header><span>AVAILABLE NOW</span><h2>You may also love</h2></header><div className="product-grid">{suggested.map(p=><ProductCard key={p.id} p={p}/>)}</div></section>}<section className="collection-service"><div><ShieldCheck/><b>Carefully selected</b><small>Quality-led essentials</small></div><div><Truck/><b>Delivery across Nigeria</b><small>Confirmed after checkout</small></div><div><Sparkles/><b>Personal service</b><small>Support directly from DE_JOY</small></div></section></section></StoreShell>}
+function Catalogue({ title, category }: { title: string; category?: string }) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [sort, setSort] = useState(category === "new-arrivals" ? "newest" : "featured");
+  const [stock, setStock] = useState(false);
+  const [collection, setCollection] = useState("all");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api<{ products: Product[] }>("/api/products")
+      .then((x) => setProducts(x.products))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const categories = [...new Set(products.map((p) => p.category).filter(Boolean))];
+  const routeCollection = category && !["all", "new-arrivals"].includes(category) ? category : "";
+  let shown = products.filter((p) => {
+    const handle = p.category.toLowerCase().replace(/\s+/g, "-");
+    const collectionMatch = routeCollection ? handle === routeCollection : collection === "all" || handle === collection;
+    const priceNaira = p.price / 100;
+    return collectionMatch &&
+      (!stock || p.inventory > 0) &&
+      (!minPrice || priceNaira >= Number(minPrice)) &&
+      (!maxPrice || priceNaira <= Number(maxPrice));
+  });
+
+  shown = [...shown].sort((a, b) => {
+    if (sort === "price-low") return a.price - b.price;
+    if (sort === "price-high") return b.price - a.price;
+    if (sort === "name-asc") return a.name.localeCompare(b.name);
+    if (sort === "name-desc") return b.name.localeCompare(a.name);
+    if (sort === "newest") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    if (sort === "oldest") return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    if (sort === "best-selling") return Number(b.sold_count || 0) - Number(a.sold_count || 0);
+    return Number(b.featured) - Number(a.featured);
+  });
+
+  const hasFilters = stock || collection !== "all" || Boolean(minPrice) || Boolean(maxPrice);
+  const clearFilters = () => {
+    setStock(false);
+    setCollection("all");
+    setMinPrice("");
+    setMaxPrice("");
+  };
+
+  return (
+    <StoreShell>
+      <section className="shop-all-head">
+        <nav aria-label="Breadcrumb"><Link to="/store">Home</Link><span>•</span><span>Categories</span></nav>
+        <h1>{title}</h1>
+        <p>{category === "press-ons" ? "Salon-worthy artistry, sized for you and designed to wear beautifully." : "Explore every DE_JOY nail variation, from refined neutrals to expressive statement finishes."}</p>
+      </section>
+      <section className="shop-all-catalogue">
+        <div className="shop-all-toolbar">
+          <p><b>{shown.length}</b> {shown.length === 1 ? "product" : "products"}</p>
+          <div>
+            <label className="sort-control">
+              <span>Sort by:</span>
+              <select value={sort} onChange={(e) => setSort(e.target.value)}>
+                <option value="featured">Featured</option>
+                <option value="newest">Newest</option>
+                <option value="best-selling">Best selling</option>
+                <option value="price-low">Price: Low to high</option>
+                <option value="price-high">Price: High to low</option>
+                <option value="name-asc">Alphabetically: A–Z</option>
+                <option value="name-desc">Alphabetically: Z–A</option>
+                <option value="oldest">Oldest</option>
+              </select>
+              <ChevronDown />
+            </label>
+            <button className="filter-toggle" onClick={() => setFiltersOpen((open) => !open)}>
+              {filtersOpen ? "Hide filters" : "Show filters"} <Settings />
+            </button>
+          </div>
+        </div>
+        <div className={`shop-all-layout ${filtersOpen ? "filters-open" : ""}`}>
+          <aside className="collection-filters" aria-label="Product filters">
+            <div className="filter-heading"><b>Filters</b>{hasFilters && <button onClick={clearFilters}>Clear all</button>}</div>
+            {!routeCollection && (
+              <details open>
+                <summary>Collection <ChevronDown /></summary>
+                <div className="filter-options">
+                  <label><input type="radio" name="collection" checked={collection === "all"} onChange={() => setCollection("all")} /><span>Shop all</span><small>{products.length}</small></label>
+                  {categories.map((name) => {
+                    const handle = name.toLowerCase().replace(/\s+/g, "-");
+                    return <label key={name}><input type="radio" name="collection" checked={collection === handle} onChange={() => setCollection(handle)} /><span>{name}</span><small>{products.filter((p) => p.category === name).length}</small></label>;
+                  })}
+                </div>
+              </details>
+            )}
+            <details open>
+              <summary>Availability <ChevronDown /></summary>
+              <div className="filter-options">
+                <label><input type="checkbox" checked={stock} onChange={(e) => setStock(e.target.checked)} /><span>In stock</span><small>{products.filter((p) => p.inventory > 0).length}</small></label>
+              </div>
+            </details>
+            <details open>
+              <summary>Price <ChevronDown /></summary>
+              <div className="price-filter">
+                <label><span>₦</span><input type="number" min="0" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} placeholder="From" aria-label="Minimum price" /></label>
+                <i>to</i>
+                <label><span>₦</span><input type="number" min="0" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} placeholder="To" aria-label="Maximum price" /></label>
+              </div>
+            </details>
+            <details>
+              <summary>Product type <ChevronDown /></summary>
+              <div className="filter-options">
+                <span className="filter-note">Nail sets and artistry collections</span>
+              </div>
+            </details>
+          </aside>
+          <main className="shop-all-results">
+            {hasFilters && <div className="active-filter-row"><span>Filtered collection</span><button onClick={clearFilters}>Clear filters ×</button></div>}
+            {loading ? (
+              <div className="collection-loading"><div /><div /><div /></div>
+            ) : shown.length ? (
+              <div className="shop-all-grid">{shown.map((p) => <ProductCard key={p.id} p={p} />)}</div>
+            ) : (
+              <div className="shop-all-empty"><Search /><h2>No products match these filters</h2><p>Try changing the collection, availability, or price range.</p><button className="store-button" onClick={clearFilters}>Clear filters</button></div>
+            )}
+          </main>
+        </div>
+        <section className="collection-service">
+          <div><ShieldCheck /><b>Carefully selected</b><small>Quality-led essentials</small></div>
+          <div><Truck /><b>Delivery across Nigeria</b><small>Confirmed after checkout</small></div>
+          <div><Sparkles /><b>Personal service</b><small>Support directly from DE_JOY</small></div>
+        </section>
+      </section>
+    </StoreShell>
+  );
+}
 export function CollectionPage(){const {handle="all"}=useParams();const title=handle==="all"?"Shop all":handle.split("-").map(x=>x[0].toUpperCase()+x.slice(1)).join(" ");return <Catalogue title={title} category={handle}/>}
 export function SearchPage(){const [params,setParams]=useSearchParams();const [products,setProducts]=useState<Product[]>([]);const q=params.get("q")||"";useEffect(()=>{api<{products:Product[]}>("/api/products").then(x=>setProducts(x.products))},[]);const results=q?products.filter(p=>`${p.name} ${p.category} ${p.description}`.toLowerCase().includes(q.toLowerCase())):[];return <StoreShell><section className="search-page"><span>SEARCH THE STORE</span><h1>What are you looking for?</h1><form onSubmit={e=>{e.preventDefault();setParams({q:String(new FormData(e.currentTarget).get("q")||"")})}}><input name="q" defaultValue={q} placeholder="Search products" autoFocus/><button aria-label="Search"><Search/></button></form>{q&&<p>{results.length} results for “{q}”</p>}<div className="product-grid">{results.map(p=><ProductCard key={p.id} p={p}/>)}</div></section></StoreShell>}
 export function ShopInfo({type}:{type:"shipping"|"returns"|"faq"}){const content={shipping:{label:"SHIPPING & DELIVERY",title:"From our studio to your door",intro:"Orders are reviewed personally before delivery is arranged.",items:[["Where do you deliver?","Delivery is available across Nigeria. Timing and cost depend on your location and are confirmed after checkout."],["When will my order ship?","Available items are prepared after payment confirmation. Custom pieces may require additional production time."],["How do I receive updates?","We use the email and phone number supplied at checkout to confirm payment, delivery and fulfilment updates."]]},returns:{label:"RETURNS & EXCHANGES",title:"Purchase with confidence",intro:"We want every DE_JOY order to arrive as expected.",items:[["Can I return an item?","Contact us promptly after delivery. Eligibility depends on item condition, hygiene requirements and whether the piece was custom-made."],["What cannot be returned?","Used, opened hygiene-sensitive products and personalised or made-to-order pieces cannot normally be returned unless faulty."],["What if something is damaged?","Send clear photos and your order reference so the team can review the issue and arrange the appropriate resolution."]]},faq:{label:"FREQUENTLY ASKED QUESTIONS",title:"Everything you need to know",intro:"Quick answers about shopping with DE_JOY.",items:[["How do I pay?","Checkout creates your order request. The team then sends the approved offline payment instructions."],["Do I need an account?","No. You can shop and place an order as a guest."],["Can I change an order?","Contact the team immediately with your order reference. Changes depend on fulfilment status and availability."],["Are colours exact?","Screens and lighting can affect colour. Product photos are a close representation, but slight variation is possible."]]}}[type];return <StoreShell><section className="info-page"><span>{content.label}</span><h1>{content.title}</h1><p>{content.intro}</p><div>{content.items.map(([q,a])=><details key={q}><summary>{q}<Plus/></summary><p>{a}</p></details>)}</div></section></StoreShell>}
