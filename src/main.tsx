@@ -26,7 +26,7 @@ import {
   X,
 } from "lucide-react";
 import "./styles.css";
-import { Admin, CartPage, CheckoutPage, OrderSuccess, ProductPage, StoreHome, StoreProvider, useCart } from "./store";
+import { Admin, CartPage, CheckoutPage, CollectionPage, OrderSuccess, ProductPage, SearchPage, ShopInfo, StoreHome, StoreProvider, TrackOrder, useCart } from "./store";
 
 type Choice = { name: string; description: string; image: string };
 type BookingData = {
@@ -170,9 +170,15 @@ function App() {
           <Route path="/book" element={<Book />} />
           <Route path="/store" element={<StoreHome />} />
           <Route path="/store/:slug" element={<ProductPage />} />
+          <Route path="/collections/:handle" element={<CollectionPage />} />
+          <Route path="/search" element={<SearchPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/order-success" element={<OrderSuccess />} />
+          <Route path="/track-order" element={<TrackOrder />} />
+          <Route path="/shop/shipping" element={<ShopInfo type="shipping" />} />
+          <Route path="/shop/returns" element={<ShopInfo type="returns" />} />
+          <Route path="/shop/faq" element={<ShopInfo type="faq" />} />
           <Route path="/admin/*" element={<Admin />} />
           <Route path="/privacy" element={<Legal type="privacy" />} />
           <Route path="/terms" element={<Legal type="terms" />} />
