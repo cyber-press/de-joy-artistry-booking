@@ -158,6 +158,7 @@ function App() {
   return (
     <BrowserRouter>
       <RouteReset />
+      <MotionEffects />
       <Header />
       <main>
         <Routes>
@@ -186,6 +187,38 @@ function RouteReset() {
       "/terms": "Terms of Use",
     };
     document.title = `${titles[pathname] || "Luxury Nail Studio in Abuja"} | DE_JOY ARTISTRY`;
+  }, [pathname]);
+  return null;
+}
+function MotionEffects() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    const items = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        ".service-card, .gallery-grid figure",
+      ),
+    );
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      items.forEach((item) => item.classList.add("is-visible"));
+      return;
+    }
+    items.forEach((item, index) => {
+      item.classList.add("reveal-item");
+      item.style.setProperty("--reveal-delay", `${(index % 3) * 80}ms`);
+    });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12 },
+    );
+    items.forEach((item) => observer.observe(item));
+    return () => observer.disconnect();
   }, [pathname]);
   return null;
 }
@@ -437,12 +470,14 @@ function Services() {
                 key={item.name}
               >
                 <span>{String(index + 1).padStart(2, "0")}</span>
-                <img
-                  src={item.image}
-                  alt={`${item.name} service`}
-                  onError={imgError}
-                />
-                <div>
+                <div className="service-media">
+                  <img
+                    src={item.image}
+                    alt={`${item.name} service`}
+                    onError={imgError}
+                  />
+                </div>
+                <div className="service-copy">
                   <h2>{item.name}</h2>
                   <p>{item.description}</p>
                   <ArrowRight />
