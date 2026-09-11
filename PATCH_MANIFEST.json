@@ -1,6 +1,6 @@
 {
-  "buildId": "dejoy-hero-option-1-v2.3",
-  "summary": "Approved soft-pink manicure hero and standard 560px desktop height",
+  "buildId": "dejoy-weboost-motion-cards-v2.4",
+  "summary": "Weboost-inspired motion effects and square image-card proportions",
   "changes": [
     "Repositioned the homepage with premium editorial messaging and hierarchy",
     "Added trust indicators, experience standards, service routing and a closing CTA",
@@ -19,6 +19,9 @@
     "Repositioned the brand around Confidence, Crafted at Your Fingertips",
     "Removed the fixed hero height and redundant signature overlay to prevent clipping",
     "Installed approved Option 1 soft-pink glitter manicure photography",
-    "Reduced the desktop hero to the standard 560px presentation height"
+    "Reduced the desktop hero to the standard 560px presentation height",
+    "Applied square 1:1 image cards in a responsive three, two and one-column grid",
+    "Added 10px card lift, 1.1x image zoom and gradient-overlay hover effects",
+    "Added a staggered 40px scroll-reveal effect with reduced-motion support"
   ]
 }
