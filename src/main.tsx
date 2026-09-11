@@ -1083,6 +1083,7 @@ function Header() {
   const { lines } = useCart();
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
+  const isCommerce = pathname.startsWith("/store") || pathname.startsWith("/collections") || pathname.startsWith("/search") || pathname.startsWith("/cart") || pathname.startsWith("/checkout") || pathname.startsWith("/order-success") || pathname.startsWith("/track-order") || pathname.startsWith("/shop/");
   useEffect(() => setOpen(false), [pathname]);
   useEffect(() => {
     document.body.classList.toggle("menu-open", open);
@@ -1104,9 +1105,9 @@ function Header() {
         <Link className="header-book" to="/book">
           Book now <ArrowRight />
         </Link>
-        <Link className="header-cart" to="/cart" aria-label="Shopping bag">
+        {!isCommerce && <Link className="header-cart" to="/cart" aria-label="Shopping bag">
           <ShoppingBag /> <span>{lines.reduce((n, line) => n + line.quantity, 0)}</span>
-        </Link>
+        </Link>}
         <button
           className="menu-button"
           onClick={() => setOpen(!open)}
@@ -1126,7 +1127,7 @@ function Header() {
         <NavLink to="/services">Services</NavLink>
         <NavLink to="/book">Booking</NavLink>
         <NavLink to="/store">Store</NavLink>
-        <NavLink to="/cart">Bag ({lines.reduce((n, line) => n + line.quantity, 0)})</NavLink>
+        {!isCommerce && <NavLink to="/cart">Bag ({lines.reduce((n, line) => n + line.quantity, 0)})</NavLink>}
       </nav>
     </header>
   );
