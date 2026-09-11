@@ -41,6 +41,24 @@ CREATE TABLE IF NOT EXISTS product_images (
   position integer NOT NULL DEFAULT 0
 );
 
+CREATE TABLE IF NOT EXISTS categories (
+  id uuid PRIMARY KEY,
+  name text NOT NULL UNIQUE,
+  slug text NOT NULL UNIQUE,
+  description text NOT NULL DEFAULT '',
+  image_url text NOT NULL DEFAULT '',
+  status text NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'archived')),
+  sort_order integer NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+INSERT INTO categories (id,name,slug,description,sort_order) VALUES
+  ('10000000-0000-4000-8000-000000000001','Nail care','nail-care','Care essentials for beautiful natural nails.',1),
+  ('10000000-0000-4000-8000-000000000002','Press-ons','press-ons','Signature ready-to-wear nail artistry.',2),
+  ('10000000-0000-4000-8000-000000000003','Beauty tools','beauty-tools','Considered tools for your beauty ritual.',3)
+ON CONFLICT (name) DO NOTHING;
+
 CREATE TABLE IF NOT EXISTS store_settings (
   key text PRIMARY KEY,
   value jsonb NOT NULL,
@@ -82,5 +100,6 @@ ON CONFLICT (key) DO NOTHING;
 
 CREATE INDEX IF NOT EXISTS idx_products_status ON products(status);
 CREATE INDEX IF NOT EXISTS idx_product_images_product ON product_images(product_id, position);
+CREATE INDEX IF NOT EXISTS idx_categories_status ON categories(status, sort_order);
 CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_sessions_token ON admin_sessions(token_hash);
