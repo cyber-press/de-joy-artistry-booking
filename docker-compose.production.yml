@@ -1,0 +1,69 @@
+services:
+  database:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dejoy
+      POSTGRES_USER: dejoy
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Missing POSTGRES_PASSWORD}
+    volumes:
+      - dejoy_database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dejoy -d dejoy"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [private]
+
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://dejoy:${POSTGRES_PASSWORD}@database:5432/dejoy
+      DATABASE_SSL: "false"
+      DATABASE_POOL_SIZE: "10"
+      SETUP_TOKEN: ${SETUP_TOKEN:?Missing SETUP_TOKEN}
+      NODE_ENV: production
+      PORT: "3000"
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - dejoy_uploads:/app/uploads
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    networks: [private, web]
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?Missing DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?Missing ACME_EMAIL}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./ops/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+    networks: [web]
+
+networks:
+  private:
+    internal: true
+  web:
+
+volumes:
+  dejoy_database:
+  dejoy_uploads:
+  caddy_data:
+  caddy_config:
