@@ -972,7 +972,7 @@ footer {
     grid-template-columns: minmax(0, 54%) minmax(0, 46%);
     gap: 0;
     align-items: stretch;
-    min-height: clamp(36rem, calc(100svh - var(--header-h) - 3rem), 46rem);
+    min-height: 32rem;
   }
   .hero-copy {
     padding: clamp(4rem, 7vw, 7rem) 0 clamp(4rem, 7vw, 7rem)
@@ -993,7 +993,7 @@ footer {
     );
   }
   .hero-image {
-    min-height: clamp(36rem, calc(100svh - var(--header-h) - 3rem), 46rem);
+    min-height: 32rem;
     margin-left: -5rem;
   }
   .hero-image::before {
@@ -1132,6 +1132,22 @@ footer {
   }
 }
 @media (min-width: 64rem) {
+  .hero-inner {
+    height: 35rem;
+    min-height: 35rem;
+  }
+  .hero-copy {
+    padding: 3rem 0 3rem clamp(3rem, 6vw, 6rem);
+  }
+  .hero h1 {
+    font-size: clamp(4.8rem, 5.5vw, 6.2rem);
+  }
+  .hero-image {
+    min-height: 35rem;
+  }
+  .hero-image > img {
+    object-position: 50% 50%;
+  }
   .service-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
