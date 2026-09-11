@@ -22,6 +22,7 @@ import {
   Settings,
   ShieldCheck,
   ShoppingBag,
+  SlidersHorizontal,
   Sparkles,
   TrendingUp,
   Truck,
@@ -343,37 +344,66 @@ export function StoreHome() {
 
 function Catalogue({ title, category }: { title: string; category?: string }) {
   const [products, setProducts] = useState<Product[]>([]);
-  const [sort, setSort] = useState(category === "new-arrivals" ? "newest" : "featured");
+  const [sort, setSort] = useState(
+    category === "new-arrivals" ? "newest" : "featured",
+  );
   const [stock, setStock] = useState(false);
+  const [facet, setFacet] = useState("all");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [visible, setVisible] = useState(12);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     api<{ products: Product[] }>("/api/products")
       .then((x) => setProducts(x.products))
       .finally(() => setLoading(false));
   }, []);
+  useEffect(() => setVisible(12), [sort, stock, facet, maxPrice, category]);
+  const categories = [
+    ...new Set(products.map((p) => p.category).filter(Boolean)),
+  ];
   let shown = products.filter(
     (p) =>
       (!category ||
         category === "all" ||
         category === "new-arrivals" ||
         p.category.toLowerCase().replace(/\s+/g, "-") === category) &&
-      (!stock || p.inventory > 0),
+      (!stock || p.inventory > 0) &&
+      (facet === "all" || p.category === facet) &&
+      (!maxPrice || p.price <= Number(maxPrice) * 100),
   );
   shown = [...shown].sort((a, b) => {
     if (sort === "price-low") return a.price - b.price;
     if (sort === "price-high") return b.price - a.price;
     if (sort === "name-asc") return a.name.localeCompare(b.name);
     if (sort === "name-desc") return b.name.localeCompare(a.name);
-    if (sort === "newest") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    if (sort === "oldest") return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-    if (sort === "best-selling") return Number(b.sold_count || 0) - Number(a.sold_count || 0);
+    if (sort === "newest")
+      return (
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    if (sort === "oldest")
+      return (
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+    if (sort === "best-selling")
+      return Number(b.sold_count || 0) - Number(a.sold_count || 0);
     return Number(b.featured) - Number(a.featured);
   });
   const suggested = products
     .filter((p) => !shown.some((x) => x.id === p.id))
     .slice(0, 3);
+  const hasFilters = stock || facet !== "all" || Boolean(maxPrice);
+  const clearFilters = () => {
+    setStock(false);
+    setFacet("all");
+    setMaxPrice("");
+  };
   return (
     <StoreShell>
+      <div className="collection-breadcrumb">
+        <Link to="/store">Home</Link>
+        <span>/</span>
+        <b>{title}</b>
+      </div>
       <section className={`collection-head collection-${category || "all"}`}>
         <div className="collection-head-copy">
           <span>DE_JOY COLLECTION</span>
@@ -400,14 +430,9 @@ function Catalogue({ title, category }: { title: string; category?: string }) {
                 <b>{shown.length}</b>{" "}
                 {shown.length === 1 ? "product" : "products"}
               </p>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={stock}
-                  onChange={(e) => setStock(e.target.checked)}
-                />{" "}
-                Available now
-              </label>
+              <span className="filter-label">
+                <SlidersHorizontal /> Filter and sort
+              </span>
               <label>
                 <span>Sort by</span>
                 <select value={sort} onChange={(e) => setSort(e.target.value)}>
@@ -423,33 +448,140 @@ function Catalogue({ title, category }: { title: string; category?: string }) {
                 <ChevronDown />
               </label>
             </div>
-            <div className="product-grid">
-              {shown.map((p) => (
-                <ProductCard key={p.id} p={p} />
-              ))}
+            {hasFilters && (
+              <div className="active-filters">
+                {stock && (
+                  <button onClick={() => setStock(false)}>
+                    Available now ×
+                  </button>
+                )}
+                {facet !== "all" && (
+                  <button onClick={() => setFacet("all")}>{facet} ×</button>
+                )}
+                {maxPrice && (
+                  <button onClick={() => setMaxPrice("")}>
+                    Up to {money(Number(maxPrice) * 100)} ×
+                  </button>
+                )}
+                <button onClick={clearFilters}>Clear all</button>
+              </div>
+            )}
+            <div className="catalogue-layout">
+              <aside className="filter-panel">
+                <h2>Filter</h2>
+                <details open>
+                  <summary>
+                    Availability <ChevronDown />
+                  </summary>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={stock}
+                      onChange={(e) => setStock(e.target.checked)}
+                    />{" "}
+                    In stock{" "}
+                    <span>
+                      {products.filter((p) => p.inventory > 0).length}
+                    </span>
+                  </label>
+                </details>
+                {(category === "all" || category === "new-arrivals") && (
+                  <details open>
+                    <summary>
+                      Product type <ChevronDown />
+                    </summary>
+                    <label>
+                      <input
+                        type="radio"
+                        name="category"
+                        checked={facet === "all"}
+                        onChange={() => setFacet("all")}
+                      />{" "}
+                      All categories <span>{products.length}</span>
+                    </label>
+                    {categories.map((c) => (
+                      <label key={c}>
+                        <input
+                          type="radio"
+                          name="category"
+                          checked={facet === c}
+                          onChange={() => setFacet(c)}
+                        />{" "}
+                        {c}{" "}
+                        <span>
+                          {products.filter((p) => p.category === c).length}
+                        </span>
+                      </label>
+                    ))}
+                  </details>
+                )}
+                <details open>
+                  <summary>
+                    Price <ChevronDown />
+                  </summary>
+                  <label className="price-filter">
+                    <span>₦</span>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="Maximum price"
+                      value={maxPrice}
+                      onChange={(e) => setMaxPrice(e.target.value)}
+                    />
+                  </label>
+                </details>
+              </aside>
+              <div className="catalogue-products">
+                <div className="product-grid">
+                  {shown.slice(0, visible).map((p) => (
+                    <ProductCard key={p.id} p={p} />
+                  ))}
+                </div>
+                {visible < shown.length && (
+                  <div className="load-more">
+                    <p>
+                      Showing {visible} of {shown.length} products
+                    </p>
+                    <button
+                      className="store-button"
+                      onClick={() => setVisible((v) => v + 12)}
+                    >
+                      Load more
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </>
         ) : (
           <section className="collection-empty">
             <div className="empty-visual">
-              <span>COMING SOON</span>
+              <span>{hasFilters ? "NO MATCHES" : "COMING SOON"}</span>
             </div>
             <div>
-              <span>THE NEXT DE_JOY DROP</span>
+              <span>
+                {hasFilters ? "REFINE YOUR SEARCH" : "THE NEXT DE_JOY DROP"}
+              </span>
               <h2>
-                This collection is
+                {hasFilters ? "No products match" : "This collection is"}
                 <br />
-                <em>being perfected.</em>
+                <em>{hasFilters ? "your filters." : "being perfected."}</em>
               </h2>
               <p>
-                We are thoughtfully preparing pieces worthy of your ritual.
-                Explore the complete edit now, or check back for the first
-                release.
+                {hasFilters
+                  ? "Clear your selected filters to see more of the DE_JOY collection."
+                  : "We are thoughtfully preparing pieces worthy of your ritual. Explore the complete edit now, or check back for the first release."}
               </p>
               <div>
-                <Link className="store-button" to="/collections/all">
-                  Shop all products <ArrowRight />
-                </Link>
+                {hasFilters ? (
+                  <button className="store-button" onClick={clearFilters}>
+                    Clear all filters
+                  </button>
+                ) : (
+                  <Link className="store-button" to="/collections/all">
+                    Shop all products <ArrowRight />
+                  </Link>
+                )}
                 <Link className="collection-text-link" to="/store">
                   Return to store
                 </Link>
@@ -495,7 +627,7 @@ export function CollectionPage() {
   const { handle = "all" } = useParams();
   const title =
     handle === "all"
-      ? "Shop all"
+      ? "All products"
       : handle
           .split("-")
           .map((x) => x[0].toUpperCase() + x.slice(1))
