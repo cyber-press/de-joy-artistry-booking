@@ -197,13 +197,13 @@ function Home() {
           <div className="hero-copy">
             <span className="eyebrow">ABUJA'S BESPOKE NAIL EXPERIENCE</span>
             <h1>
-              Where beauty meets
+              Confidence, crafted
               <br />
-              <em>the art of you.</em>
+              <em>at your fingertips.</em>
             </h1>
             <p>
-              Bespoke nail artistry shaped around your style, your moment, and
-              the confidence you want to carry.
+              From refined simplicity to bold self-expression, every DE_JOY set
+              is designed to reflect your style and elevate how you feel.
             </p>
             <div className="hero-actions">
               <Link className="btn primary" to="/book">
@@ -226,14 +226,10 @@ function Home() {
           </div>
           <div className="hero-image">
             <img
-              src="https://images.unsplash.com/photo-1604902396830-aca29e19b067?auto=format&fit=crop&w=1500&q=88"
-              alt="Luxury manicure with detailed nail artistry"
+              src="https://images.pexels.com/photos/34373403/pexels-photo-34373403.jpeg?auto=compress&cs=tinysrgb&w=1600"
+              alt="Elegant manicured hands styled with gold jewellery"
               onError={imgError}
             />
-            <div className="image-note">
-              <span>THE DE_JOY SIGNATURE</span>
-              <b>Designed with intention. Finished with confidence.</b>
-            </div>
           </div>
         </div>
       </section>

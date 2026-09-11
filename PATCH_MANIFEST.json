@@ -1,6 +1,6 @@
 {
-  "buildId": "dejoy-hero-editorial-v2.1",
-  "summary": "Executive header readability and standardized hero dimensions",
+  "buildId": "dejoy-hero-editorial-v2.2",
+  "summary": "Luxury hero imagery, stronger positioning and content-safe sizing",
   "changes": [
     "Repositioned the homepage with premium editorial messaging and hierarchy",
     "Added trust indicators, experience standards, service routing and a closing CTA",
@@ -14,6 +14,9 @@
     "Rebuilt the homepage hero as a unified image and content composition",
     "Introduced the approved Where Beauty Meets the Art of You positioning",
     "Increased desktop navigation and Book Now typography",
-    "Standardized the hero to a 1440px container and viewport-aware 576–736px height"
+    "Standardized the hero to a 1440px container and viewport-aware 576–736px height",
+    "Replaced the artificial floating-hands visual with premium neutral Pexels photography",
+    "Repositioned the brand around Confidence, Crafted at Your Fingertips",
+    "Removed the fixed hero height and redundant signature overlay to prevent clipping"
   ]
 }
