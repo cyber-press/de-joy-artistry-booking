@@ -178,7 +178,32 @@ function Catalogue({ title, category }: { title: string; category?: string }) {
   );
 }
 export function CollectionPage(){const {handle="all"}=useParams();const title=handle==="all"?"Shop all":handle.split("-").map(x=>x[0].toUpperCase()+x.slice(1)).join(" ");return <Catalogue title={title} category={handle}/>}
-export function SearchPage(){const [params,setParams]=useSearchParams();const [products,setProducts]=useState<Product[]>([]);const q=params.get("q")||"";useEffect(()=>{api<{products:Product[]}>("/api/products").then(x=>setProducts(x.products))},[]);const results=q?products.filter(p=>`${p.name} ${p.category} ${p.description}`.toLowerCase().includes(q.toLowerCase())):[];return <StoreShell><section className="search-page"><span>SEARCH THE STORE</span><h1>What are you looking for?</h1><form onSubmit={e=>{e.preventDefault();setParams({q:String(new FormData(e.currentTarget).get("q")||"")})}}><input name="q" defaultValue={q} placeholder="Search products" autoFocus/><button aria-label="Search"><Search/></button></form>{q&&<p>{results.length} results for “{q}”</p>}<div className="product-grid">{results.map(p=><ProductCard key={p.id} p={p}/>)}</div></section></StoreShell>}
+export function SearchPage() {
+  const [params, setParams] = useSearchParams();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const q = params.get("q") || "";
+  useEffect(() => {
+    api<{ products: Product[] }>("/api/products").then((x) => setProducts(x.products)).finally(() => setLoading(false));
+  }, []);
+  const results = q ? products.filter((p) => `${p.name} ${p.category} ${p.description}`.toLowerCase().includes(q.toLowerCase())) : products.slice(0, 6);
+  const categories = [...new Set(products.map((p) => p.category).filter(Boolean))].slice(0, 6);
+  return (
+    <StoreShell>
+      <section className="search-page upgraded-search">
+        <span>SEARCH THE STORE</span>
+        <h1>Find your next signature set</h1>
+        <form onSubmit={(e) => { e.preventDefault(); const value = String(new FormData(e.currentTarget).get("q") || "").trim(); setParams(value ? { q: value } : {}); }}>
+          <input name="q" defaultValue={q} placeholder="Search by style, finish, or collection" aria-label="Search products" autoFocus />
+          <button aria-label="Search"><Search /></button>
+        </form>
+        {!q && categories.length > 0 && <div className="search-suggestions"><small>POPULAR COLLECTIONS</small><div>{categories.map((name) => <button key={name} onClick={() => setParams({ q: name })}>{name}</button>)}</div></div>}
+        <header className="search-results-head"><h2>{q ? `Results for “${q}”` : "Explore the collection"}</h2><span>{q ? results.length : products.length} products</span></header>
+        {loading ? <div className="collection-loading"><div /><div /><div /></div> : results.length ? <div className="product-grid">{results.map((p) => <ProductCard key={p.id} p={p} />)}</div> : <div className="shop-all-empty"><Search /><h2>No matching products</h2><p>Try a broader style name or browse the complete collection.</p><Link className="store-button" to="/collections/all">Shop all nails</Link></div>}
+      </section>
+    </StoreShell>
+  );
+}
 export function ShopInfo({type}:{type:"shipping"|"returns"|"faq"}){const content={shipping:{label:"SHIPPING & DELIVERY",title:"From our studio to your door",intro:"Orders are reviewed personally before delivery is arranged.",items:[["Where do you deliver?","Delivery is available across Nigeria. Timing and cost depend on your location and are confirmed after checkout."],["When will my order ship?","Available items are prepared after payment confirmation. Custom pieces may require additional production time."],["How do I receive updates?","We use the email and phone number supplied at checkout to confirm payment, delivery and fulfilment updates."]]},returns:{label:"RETURNS & EXCHANGES",title:"Purchase with confidence",intro:"We want every DE_JOY order to arrive as expected.",items:[["Can I return an item?","Contact us promptly after delivery. Eligibility depends on item condition, hygiene requirements and whether the piece was custom-made."],["What cannot be returned?","Used, opened hygiene-sensitive products and personalised or made-to-order pieces cannot normally be returned unless faulty."],["What if something is damaged?","Send clear photos and your order reference so the team can review the issue and arrange the appropriate resolution."]]},faq:{label:"FREQUENTLY ASKED QUESTIONS",title:"Everything you need to know",intro:"Quick answers about shopping with DE_JOY.",items:[["How do I pay?","Checkout creates your order request. The team then sends the approved offline payment instructions."],["Do I need an account?","No. You can shop and place an order as a guest."],["Can I change an order?","Contact the team immediately with your order reference. Changes depend on fulfilment status and availability."],["Are colours exact?","Screens and lighting can affect colour. Product photos are a close representation, but slight variation is possible."]]}}[type];return <StoreShell><section className="info-page"><span>{content.label}</span><h1>{content.title}</h1><p>{content.intro}</p><div>{content.items.map(([q,a])=><details key={q}><summary>{q}<Plus/></summary><p>{a}</p></details>)}</div></section></StoreShell>}
 export function TrackOrder(){const [result,setResult]=useState<any>(null);const [error,setError]=useState("");async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();const f=new FormData(e.currentTarget);try{setResult(await api(`/api/orders/track?number=${encodeURIComponent(String(f.get("number")))}&email=${encodeURIComponent(String(f.get("email")))}`));setError("")}catch(x){setResult(null);setError((x as Error).message)}}return <StoreShell><section className="track-page"><span>ORDER STATUS</span><h1>Track your order</h1><p>Enter your order reference and the email used at checkout.</p><form onSubmit={submit}><label>Order reference<input name="number" required placeholder="e.g. 1024"/></label><label>Email address<input name="email" type="email" required/></label><button className="store-button">Check status</button></form>{error&&<p className="form-error">{error}</p>}{result&&<article><b>Order #{result.order_number}</b><h2>{result.fulfillment_status}</h2><p>Payment: {result.payment_status}</p><small>Placed {new Date(result.created_at).toLocaleDateString()}</small></article>}</section></StoreShell>}
 export function ProductPage() {
@@ -639,5 +664,46 @@ function ImageManager({
     </div>
   );
 }
-function AdminOrders(){const [orders,setOrders]=useState<any[]>([]);const load=()=>api<{orders:any[]}>("/api/admin/orders").then(x=>setOrders(x.orders));useEffect(()=>{load()},[]);return <><header className="admin-head"><div><span>SALES</span><h1>Orders</h1></div></header><div className="orders">{orders.map(o=><article key={o.id}><div><b>{o.order_number}</b><h3>{o.customer_name}</h3><p>{o.customer_email} · {o.customer_phone}</p><small>{new Date(o.created_at).toLocaleString()}</small></div><b>{money(o.total)}</b><select value={o.status} onChange={e=>api(`/api/admin/orders/${o.id}/status`,{method:"PUT",body:JSON.stringify({status:e.target.value})}).then(load)}><option>pending</option><option>confirmed</option><option>fulfilled</option><option>cancelled</option></select></article>)}</div></>}
+function AdminOrders() {
+  const [orders, setOrders] = useState<any[]>([]);
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("all");
+  const [notice, setNotice] = useState("");
+  const load = () => api<{ orders: any[] }>("/api/admin/orders").then((x) => setOrders(x.orders));
+  useEffect(() => { load(); }, []);
+  const shown = orders.filter((order) => {
+    const searchable = `${order.order_number} ${order.customer_name} ${order.customer_email} ${order.customer_phone}`.toLowerCase();
+    return (status === "all" || order.status === status) && searchable.includes(query.toLowerCase());
+  });
+  async function updateStatus(orderId: string, nextStatus: string) {
+    await api(`/api/admin/orders/${orderId}/status`, { method: "PUT", body: JSON.stringify({ status: nextStatus }) });
+    await load();
+    setNotice("Order status updated.");
+    window.setTimeout(() => setNotice(""), 1800);
+  }
+  return (
+    <>
+      <header className="admin-head products-head"><div><span>SALES</span><h1>Orders</h1><p>Review customer requests and manage fulfilment status.</p></div></header>
+      {notice && <div className="admin-notice success">{notice}</div>}
+      <section className="product-admin-card order-admin-card">
+        <nav className="product-views">{["all", "pending", "confirmed", "fulfilled", "cancelled"].map((id) => <button key={id} className={status === id ? "active" : ""} onClick={() => setStatus(id)}>{id[0].toUpperCase() + id.slice(1)} <span>{id === "all" ? orders.length : orders.filter((order) => order.status === id).length}</span></button>)}</nav>
+        <div className="product-toolbar"><label className="admin-search"><Search /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search orders, customers, email, or phone" /></label></div>
+        <div className="admin-order-table">
+          <div className="admin-order-row order-columns"><span>Order</span><span>Customer</span><span>Date</span><span>Total</span><span>Status</span></div>
+          {shown.map((order) => <article className="admin-order-row" key={order.id}>
+            <div><b>#{order.order_number}</b><small>{order.items?.length || 0} items</small></div>
+            <div><b>{order.customer_name}</b><small>{order.customer_email}</small><small>{order.customer_phone}</small></div>
+            <span>{new Date(order.created_at).toLocaleDateString()}</span>
+            <b>{money(order.total)}</b>
+            <select className={`order-status-select ${order.status}`} value={order.status} onChange={(e) => updateStatus(order.id, e.target.value)}>
+              <option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="fulfilled">Fulfilled</option><option value="cancelled">Cancelled</option>
+            </select>
+          </article>)}
+          {!shown.length && <div className="products-empty"><ShoppingBag /><h2>No orders found</h2><p>New customer orders and matching search results will appear here.</p></div>}
+        </div>
+        <footer className="products-footer">Showing {shown.length} of {orders.length} orders</footer>
+      </section>
+    </>
+  );
+}
 function AdminSettings(){const [s,setS]=useState<SettingsData|null>(null);const [saved,setSaved]=useState(false);useEffect(()=>{api<SettingsData>("/api/admin/settings").then(setS)},[]);if(!s)return null;async function save(e:FormEvent<HTMLFormElement>){e.preventDefault();const f=new FormData(e.currentTarget);await api("/api/admin/settings",{method:"PUT",body:JSON.stringify(Object.fromEntries(f))});setSaved(true)}return <><header className="admin-head"><div><span>CONFIGURATION</span><h1>Store settings</h1></div></header><form className="admin-form settings-form" onSubmit={save}><label>Store name<input name="store_name" defaultValue={s.store_name}/></label><label>Announcement<input name="announcement" defaultValue={s.announcement}/></label><label>Contact email<input name="contact_email" type="email" defaultValue={s.contact_email}/></label><label>WhatsApp<input name="whatsapp" defaultValue={s.whatsapp}/></label><label>Offline payment instructions<textarea name="offline_payment_instructions" defaultValue={s.offline_payment_instructions}/></label><button className="store-button">Save settings</button>{saved&&<small>Saved successfully.</small>}</form></>}
