@@ -436,32 +436,64 @@ aside h2 {
 .service-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1rem;
+  gap: 2rem;
 }
 .service-card {
-  padding: 1rem;
+  padding: 0;
   border: 1px solid var(--line);
-  border-radius: 0.6rem;
+  border-radius: 1.25rem;
   background: var(--surface);
-  transition: 0.2s;
+  overflow: hidden;
+  transition:
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s,
+    box-shadow 0.3s;
 }
 .service-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 1rem 2rem #32131f12;
+  transform: translateY(-10px);
+  border-color: var(--rose);
+  box-shadow: 0 1.5rem 3rem #32131f1c;
 }
 .service-card > span {
-  font-size: 0.6rem;
+  display: block;
+  padding: 1.25rem 1.5rem 0;
+  font-size: 0.65rem;
   color: var(--muted);
 }
-.service-card > img {
-  width: 100%;
-  aspect-ratio: 16/10;
-  object-fit: cover;
-  margin: 0.7rem 0 1rem;
-  border-radius: 0.35rem;
-}
-.service-card > div {
+.service-media {
+  aspect-ratio: 1/1;
+  margin-top: 0.75rem;
   position: relative;
+  overflow: hidden;
+}
+.service-media::after,
+.gallery-grid figure::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(transparent 50%, #2d1821cc 100%);
+  transition: opacity 0.3s;
+}
+.service-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.service-card:hover .service-media img,
+.gallery-grid figure:hover img {
+  transform: scale(1.1);
+}
+.service-card:hover .service-media::after,
+.gallery-grid figure:hover::after {
+  opacity: 1;
+}
+.service-copy {
+  position: relative;
+  min-height: 7.5rem;
+  padding: 1.5rem;
 }
 .service-card h2 {
   font-size: 1.65rem;
@@ -495,20 +527,29 @@ aside h2 {
 }
 .gallery-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.8rem;
+  grid-template-columns: 1fr;
+  gap: 2rem;
 }
 .gallery-grid figure {
-  aspect-ratio: 4/5;
+  aspect-ratio: 1/1;
   margin: 0;
   position: relative;
   overflow: hidden;
-  border-radius: 0.45rem;
+  border: 1px solid transparent;
+  border-radius: 1.25rem;
+  transition:
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s;
+}
+.gallery-grid figure:hover {
+  transform: translateY(-10px);
+  border-color: var(--rose);
 }
 .gallery-grid img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .gallery-grid figcaption {
   position: absolute;
@@ -519,6 +560,26 @@ aside h2 {
   background: var(--surface);
   display: flex;
   justify-content: space-between;
+  z-index: 2;
+}
+.reveal-item {
+  opacity: 0;
+  transform: translateY(40px);
+  transition:
+    opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s,
+    box-shadow 0.3s;
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal-item.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.service-card.reveal-item.is-visible:hover,
+.gallery-grid figure.reveal-item.is-visible:hover {
+  transform: translateY(-10px);
+  transition-delay: 0ms;
 }
 .gallery-grid figcaption b {
   font-family: "Playfair Display";
@@ -1039,7 +1100,7 @@ footer {
     align-items: end;
   }
   .gallery-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .progress-head {
     padding: 1.25rem 1.75rem;
@@ -1149,7 +1210,10 @@ footer {
     object-position: 50% 50%;
   }
   .service-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .gallery-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .design-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
