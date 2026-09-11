@@ -1,0 +1,14 @@
+{
+  "buildId": "dejoy-executive-upgrade-v1",
+  "summary": "Executive visual, conversion, WhatsApp booking, legal and SEO upgrade",
+  "changes": [
+    "Repositioned the homepage with premium editorial messaging and hierarchy",
+    "Added trust indicators, experience standards, service routing and a closing CTA",
+    "Connected service cards to preselected booking states",
+    "Connected the completed booking request directly to +234 708 777 7511",
+    "Added persistent WhatsApp access and copy fallback",
+    "Added Privacy Policy and Terms of Use routes",
+    "Added Open Graph, Twitter and NailSalon structured metadata",
+    "Added reduced-motion accessibility support and responsive executive styling"
+  ]
+}

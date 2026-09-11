@@ -1,6 +1,6 @@
 # DE_JOY ARTISTRY Booking Site
 
-A mobile-first booking enquiry website for DE_JOY ARTISTRY in Abuja, Nigeria. Customers can select a service, nail shape, length, design style and preferred date. The site creates a formatted booking request that can be copied and sent to Joy AD on WhatsApp for availability and final pricing.
+A mobile-first luxury booking website for DE_JOY ARTISTRY in Abuja, Nigeria. Customers can select a service, nail shape, length, design style and preferred date. The site creates a formatted request and opens a direct WhatsApp conversation with Joy for availability and final pricing.
 
 ## Run locally
 
@@ -19,9 +19,17 @@ npm run build
 
 Import this repository into Vercel, Netlify or Cloudflare Pages. Use `npm run build` as the build command and `dist` as the output directory.
 
-## Add direct WhatsApp chat later
+## WhatsApp booking
 
-WhatsApp direct links require the business phone number in international format. Once available, the copy button can be replaced with a `https://wa.me/NUMBER?text=...` link. Until then, the site copies the complete request so the customer can paste it into the Joy AD chat.
+The production booking and floating chat actions use `+234 708 777 7511`. Update the `whatsappNumber` constant in `src/main.tsx` if the business number changes.
+
+## Routes
+
+- `/` executive landing page
+- `/services` service and inspiration catalogue
+- `/book` six-step booking configurator
+- `/privacy` privacy notice
+- `/terms` website terms
 
 ## Images
 
