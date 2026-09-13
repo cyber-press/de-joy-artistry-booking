@@ -2,6 +2,11 @@
   "buildId": "dejoy-booking-professional-v4.3",
   "summary": "Harden the six-step booking journey into a professional, accessible appointment-request experience",
   "changes": [
+    "Refined the Booking page into a cohesive premium appointment workspace with a subtle editorial canvas",
+    "Strengthened the step rail, progress meter, selection hierarchy and responsive action area",
+    "Upgraded service and design choices with larger media, serif titles, clearer selected states and restrained interaction feedback",
+    "Improved the live summary with stronger imagery, draft status, readable data rows and clearer disclosure treatment",
+    "Added polite live-region behavior so assistive technology receives selection-summary updates",
     "Rebuilt the shared footer as a premium dark editorial section used across every public page",
     "Added a global appointment conversion panel with a direct booking action",
     "Organized Explore, Shop and Client care destinations into accessible navigation groups",

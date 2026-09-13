@@ -1483,3 +1483,18 @@ aside h2 {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Booking workspace visual refinement */
+.book-section{position:relative;overflow:hidden;background:radial-gradient(circle at 50% 0,#fff 0,#faf6f0 48%,#f5eee8 100%)}
+.book-section::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.35;background-image:linear-gradient(#963f6108 1px,transparent 1px),linear-gradient(90deg,#963f6108 1px,transparent 1px);background-size:4rem 4rem;mask-image:linear-gradient(to bottom,#000,transparent 70%)}
+.booking-shell{position:relative;border-color:#d8c9c2;border-radius:1.25rem;box-shadow:0 1.75rem 5rem #32131f1a;background:#fff}
+.progress-head{padding:1.15rem 1.5rem;background:#fffdfb;border-bottom-color:#e7ddd7}
+.meter{height:.25rem;background:#eadfe0}.meter i{background:linear-gradient(90deg,#963f61,#c7859f)}
+.wizard-main{padding:clamp(1.75rem,4vw,3.25rem)}
+.panel>header{max-width:40rem}.panel>header h2{font-size:clamp(2.25rem,4vw,3.15rem);letter-spacing:-.05em}.panel>header p{font-size:.9rem;line-height:1.65}
+.option-grid,.design-grid{gap:.8rem}.option-grid button,.design-grid button{min-height:5.4rem;padding:.65rem;border-color:#e3d8d1;border-radius:.65rem;background:#fcf9f5;transition:transform .22s,border-color .22s,background .22s,box-shadow .22s}.option-grid button:hover,.design-grid button:hover{transform:translateY(-2px);border-color:#c5a094;background:#fff;box-shadow:0 .65rem 1.4rem #2b25230d}.option-grid img,.design-grid img{width:4.25rem;border-radius:.45rem}.option-grid button>span b,.design-grid button>span b{font-family:"Playfair Display",serif;font-size:1.03rem;color:#2b2523}.option-grid small,.design-grid small{font-size:.67rem;line-height:1.5}.selected{border-color:#963f61!important;box-shadow:inset 0 0 0 1px #963f61,0 .75rem 1.5rem #963f6110!important;background:#fff8fa!important}
+.wizard-actions{margin-top:1.75rem;padding-top:1.25rem}.wizard-actions .btn{min-width:8.5rem;justify-content:center}.wizard-actions .primary{box-shadow:0 .65rem 1.35rem #963f6125}.wizard-actions .primary:hover{transform:translateY(-2px);box-shadow:0 .85rem 1.6rem #963f6130}
+.booking-summary{padding:1.5rem;background:linear-gradient(180deg,#f4e8e3 0,#f8f1ec 100%)}.booking-summary>.section-label{font-size:.64rem}.booking-summary>img{aspect-ratio:4/3;margin:1rem 0 1.25rem;border-radius:.65rem;box-shadow:0 .65rem 1.5rem #2b252314}.booking-summary h2{font-size:2.25rem}.booking-summary dl div{padding:.72rem 0}.booking-summary dt{color:#695e5a}.booking-summary dd{max-width:9rem}.summary-note{padding:.85rem;margin-top:1rem;border-radius:.55rem;background:#ffffff8c}.summary-disclaimer{line-height:1.7}
+@media(min-width:48rem){.progress-head{padding:1.2rem 1.75rem}.progress-head nav{display:grid;grid-template-columns:repeat(6,1fr)}.progress-head nav button{justify-content:center;border-radius:.4rem;transition:background .2s,color .2s}.progress-head nav button:hover{background:#f6ece8}.wizard-main{min-height:34rem}.wizard-layout aside{max-width:20rem}.booking-summary{padding:1.6rem}}
+@media(max-width:47.99rem){.book-section{padding-top:1rem}.booking-shell{border-radius:.85rem}.booking-assurance{margin-top:-.75rem}.wizard-main{padding:1.35rem}.panel>header h2{font-size:2.25rem}.option-grid button{min-height:5.1rem}.booking-summary{border-top:1px solid #d8c9c2}.wizard-actions{position:sticky;bottom:0;z-index:8;margin-inline:-1.35rem;padding:1rem 1.35rem calc(1rem + env(safe-area-inset-bottom));background:#fffffff2;backdrop-filter:blur(14px)}}
+@media(prefers-reduced-motion:reduce){.option-grid button,.design-grid button,.wizard-actions .primary,.progress-head nav button{transition:none!important;transform:none!important}}
