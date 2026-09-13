@@ -23,6 +23,8 @@ import {
   ShoppingBag,
   Sparkles,
   Star,
+  LockKeyhole,
+  RotateCcw,
   X,
 } from "lucide-react";
 import "./styles.css";
@@ -563,6 +565,7 @@ function Book() {
     [notes, setNotes] = useState(""),
     [copied, setCopied] = useState(false),
     [error, setError] = useState("");
+  const today = new Date().toISOString().slice(0, 10);
   const selected = services.find((x) => x.name === service)!;
   const state: BookingData = {
     service,
@@ -595,8 +598,12 @@ function Book() {
   const validate = (target: number) => {
     if (target > 4 && !date)
       return "Choose your preferred date before continuing.";
+    if (target > 4 && date < today)
+      return "Choose today or a future date for your appointment request.";
     if (target > 5 && !name.trim())
       return "Enter your name before preparing the request.";
+    if (target > 5 && !/^\+?[0-9 ()-]{10,20}$/.test(phone.trim()))
+      return "Enter a valid WhatsApp number, including the country code.";
     return "";
   };
   const go = (target: number) => {
@@ -628,6 +635,20 @@ function Book() {
       );
     }
   };
+  const reset = () => {
+    setStep(0);
+    setService(initialService);
+    setShape("Almond");
+    setLength("Medium");
+    setDesign("Cat-eye");
+    setColour("Burgundy");
+    setCustomColour("");
+    setDate("");
+    setName("");
+    setPhone("");
+    setNotes("");
+    setError("");
+  };
   return (
     <>
       <PageIntro
@@ -635,11 +656,16 @@ function Book() {
         title="Build your appointment"
         text="A guided six-step booking request designed for clarity. Your preferred date and final price are confirmed personally with Joy."
       />
+      <div className="booking-assurance" aria-label="Booking assurances">
+        <span><Clock3 /> About 3 minutes</span>
+        <span><MessageCircle /> Confirmed personally</span>
+        <span><LockKeyhole /> No payment required</span>
+      </div>
       <section className="book-section">
         <div className="booking-shell">
           <div className="progress-head">
             <div>
-              <span>YOUR BOOKING</span>
+              <span>{steps[step]}</span>
               <b>Step {step + 1} of 6</b>
             </div>
             <div
@@ -670,6 +696,10 @@ function Book() {
           </div>
           <div className="wizard-layout">
             <section className="wizard-main">
+              <div className="wizard-kicker">
+                <span>STEP {String(step + 1).padStart(2, "0")}</span>
+                <button type="button" onClick={reset}><RotateCcw /> Start over</button>
+              </div>
               <BookingStep
                 step={step}
                 data={state}
@@ -741,7 +771,7 @@ function Book() {
                 </div>
               )}
             </section>
-            <aside>
+            <aside className="booking-summary" aria-label="Appointment summary">
               <span className="section-label">LIVE SUMMARY</span>
               <img
                 src={selected.image}
@@ -749,6 +779,7 @@ function Book() {
                 onError={imgError}
               />
               <h2>{service}</h2>
+              <span className="summary-status"><i /> In progress</span>
               <dl>
                 <div>
                   <dt>Shape</dt>
@@ -768,13 +799,14 @@ function Book() {
                 </div>
                 <div>
                   <dt>Preferred date</dt>
-                  <dd>{date || "Not selected"}</dd>
+                  <dd>{date ? new Date(`${date}T12:00:00`).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" }) : "Not selected"}</dd>
                 </div>
               </dl>
-              <p>
+              <p className="summary-note">
                 <Sparkles /> Final price is provided after Joy reviews your
                 choices.
               </p>
+              <small className="summary-disclaimer">Submitting this form sends an appointment request. Your booking is confirmed only after Joy replies.</small>
             </aside>
           </div>
         </div>
@@ -955,14 +987,17 @@ function BookingStep(p: any) {
           />
         </label>
         <label>
-          <span>WhatsApp number</span>
+          <span>WhatsApp number *</span>
           <input
+            required
             inputMode="tel"
             autoComplete="tel"
             value={d.phone}
             onChange={(e: any) => p.setPhone(e.target.value)}
-            placeholder="+234..."
+            placeholder="+234 800 000 0000"
+            aria-describedby="phone-help"
           />
+          <small id="phone-help">Include your country code so Joy can confirm your appointment.</small>
         </label>
         <label className="wide">
           <span>Notes or inspiration</span>
@@ -975,8 +1010,8 @@ function BookingStep(p: any) {
       </div>
       <Info
         icon={<MessageCircle />}
-        title="Ready to send"
-        text="Copy your request and paste it into your WhatsApp chat with Joy AD."
+        title="Personal, not automated"
+        text="Your details prepare one WhatsApp message. No payment is taken and no appointment is confirmed until Joy replies."
       />
     </Panel>
   );
