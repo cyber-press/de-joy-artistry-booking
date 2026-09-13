@@ -1,7 +1,15 @@
 {
-  "buildId": "dejoy-multi-gateway-payments-v4.1",
-  "summary": "Add owner-managed Paystack, Flutterwave and manual payment settings with verified hosted checkout",
+  "buildId": "dejoy-homepage-usability-v4.2",
+  "summary": "Refine the homepage hero, typography, image-led service cards and responsive hierarchy for a professional finish",
   "changes": [
+    "Completed a homepage-only source and screenshot usability audit from hero through final conversion section",
+    "Constrained the desktop hero to a professional 34–38rem responsive range without cropping its content",
+    "Improved hero heading scaling and mobile line-height while preserving the approved image and copy",
+    "Raised supporting text, trust labels, service links and final CTA copy to more readable professional sizes",
+    "Converted service-routing panels into consistent 16:10 image-led cards with restrained lift and zoom effects",
+    "Added eager high-priority loading for the hero image and lazy loading for below-the-fold imagery",
+    "Simplified the mobile value strip to one scannable benefit per row and tightened mobile section rhythm",
+    "Preserved keyboard focus, reduced-motion behavior and existing booking paths",
     "Added Paystack and Flutterwave hosted-checkout initialization with Paystack active in test mode by default",
     "Added manual bank-transfer settings as an independently enabled checkout fallback",
     "Added owner-only payment settings with provider toggles, active-gateway selection and test/live modes",
