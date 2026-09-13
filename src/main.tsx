@@ -487,8 +487,13 @@ function Services() {
         title="Choose your starting point"
         text="Select a service and explore a design direction. Your exact set and final price are confirmed personally with Joy."
       />
-      <section className="page-section">
-        <div className="container">
+      <section className="page-section services-editorial" aria-labelledby="services-grid-heading">
+        <div className="container services-container">
+          <header className="services-heading">
+            <span className="section-label">THE DE_JOY EXPERIENCE</span>
+            <h2 id="services-grid-heading">Artistry for every detail.</h2>
+            <p>Explore considered nail services shaped around your style, comfort, and occasion.</p>
+          </header>
           <div className="service-grid">
             {services.map((item, index) => (
               <Link
@@ -496,18 +501,20 @@ function Services() {
                 className="service-card"
                 key={item.name}
               >
-                <span>{String(index + 1).padStart(2, "0")}</span>
                 <div className="service-media">
+                  <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
                   <img
                     src={item.image}
-                    alt={`${item.name} service`}
+                    alt={`${item.name} service by DE_JOY Artistry`}
                     onError={imgError}
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <div className="service-copy">
                   <h2>{item.name}</h2>
                   <p>{item.description}</p>
-                  <ArrowRight />
+                  <span className="service-action">Book this service <ArrowRight /></span>
                 </div>
               </Link>
             ))}
@@ -567,6 +574,7 @@ function Book() {
     [error, setError] = useState("");
   const today = new Date().toISOString().slice(0, 10);
   const selected = services.find((x) => x.name === service)!;
+  const selectedDesign = designs.find((x) => x.name === design)!;
   const state: BookingData = {
     service,
     shape,
@@ -581,7 +589,7 @@ function Book() {
   };
   const summary = useMemo(
     () =>
-      `Hello Joy AD! I would like to request an appointment with DE_JOY ARTISTRY.\n\nName: ${name}\nPhone: ${phone || "Not provided"}\nPreferred date: ${date}\nService: ${service}\nShape: ${shape}\nLength: ${length}\nDesign: ${design}\nColour: ${customColour || colour}\nNotes: ${notes || "None"}\n\nPlease confirm availability and the final price.`,
+      `Hello Joy AD! I would like to request an appointment with DE_JOY ARTISTRY.\n\nName: ${name}\nPhone: ${phone || "Not provided"}\nPreferred date: ${date}\n\nMY SELECTION\nService: ${service}\nShape: ${shape}\nLength: ${length}\nDesign: ${design}\nColour: ${customColour || colour}\n\nIMAGE REFERENCES\nSelected design (${design}):\n${selectedDesign.image}\n\nSelected service (${service}):\n${selected.image}\n\nNotes: ${notes || "None"}\n\nPlease confirm availability and the final price.`,
     [
       name,
       phone,
@@ -593,6 +601,8 @@ function Book() {
       colour,
       customColour,
       notes,
+      selected.image,
+      selectedDesign.image,
     ],
   );
   const validate = (target: number) => {

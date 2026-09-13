@@ -2,6 +2,12 @@
   "buildId": "dejoy-booking-professional-v4.3",
   "summary": "Harden the six-step booking journey into a professional, accessible appointment-request experience",
   "changes": [
+    "Rebuilt the services grid as a rigid editorial card system within a 1140px cream canvas",
+    "Standardized every service card with a 4:5 media crop, equal-height content body and fixed internal rhythm",
+    "Added rose serif index badges, espresso typography and restrained luxury hover and keyboard-focus states",
+    "Preserved direct service-to-booking routes for all eight existing DE_JOY services",
+    "Added the selected design image URL first in every generated WhatsApp appointment request",
+    "Added the selected service image URL as the second visual reference in every generated WhatsApp request",
     "Added a booking assurance bar covering completion time, personal confirmation and no-payment expectations",
     "Added precise current-step context and a one-action booking reset control",
     "Required and validated WhatsApp contact details before preparing the final request",
