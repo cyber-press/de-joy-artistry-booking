@@ -673,7 +673,7 @@ function Book() {
       </div>
       <section className="book-section">
         <div className="booking-shell">
-          <div className="progress-head">
+          <div className="progress-head" aria-label={`Booking progress, step ${step + 1} of 6`}>
             <div>
               <span>{steps[step]}</span>
               <b>Step {step + 1} of 6</b>
@@ -781,7 +781,7 @@ function Book() {
                 </div>
               )}
             </section>
-            <aside className="booking-summary" aria-label="Appointment summary">
+            <aside className="booking-summary" aria-label="Appointment summary" aria-live="polite">
               <span className="section-label">LIVE SUMMARY</span>
               <img
                 src={selected.image}
@@ -789,7 +789,7 @@ function Book() {
                 onError={imgError}
               />
               <h2>{service}</h2>
-              <span className="summary-status"><i /> In progress</span>
+              <span className="summary-status"><i /> Appointment draft</span>
               <dl>
                 <div>
                   <dt>Shape</dt>
