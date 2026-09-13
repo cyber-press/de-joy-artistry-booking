@@ -9,7 +9,8 @@ import helmet from "helmet";
 import multer from "multer";
 import pinoHttp from "pino-http";
 import { z } from "zod";
-import { createSession, enforceSameOrigin, hashToken, requireAdmin, SESSION_COOKIE } from "./auth.js";
+import { createSession, enforceSameOrigin, hashToken, requireAdmin, sessionCookieOptions, SESSION_COOKIE } from "./auth.js";
+import { rateLimit, safeRequestId } from "./security.js";
 import { migrate, pool, query } from "./db.js";
 
 const app = express();
@@ -18,11 +19,34 @@ const uploadDir = path.resolve(process.env.UPLOAD_DIR || "uploads");
 fs.mkdirSync(uploadDir, { recursive: true });
 
 app.set("trust proxy", 1);
-app.use(pinoHttp({ genReqId: (req) => req.headers["x-request-id"]?.toString() || crypto.randomUUID() }));
-app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: "cross-origin" } }));
+app.disable("x-powered-by");
+app.use(pinoHttp({ genReqId: (req) => safeRequestId(req.headers["x-request-id"]) }));
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      baseUri: ["'self'"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      formAction: ["'self'"],
+      frameAncestors: ["'none'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      objectSrc: ["'none'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      upgradeInsecureRequests: [],
+    },
+  },
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+}));
 app.use(compression());
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
+app.use("/api", (_req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  next();
+});
 app.use(enforceSameOrigin);
 app.use("/uploads", express.static(uploadDir, { maxAge: "7d", immutable: true }));
 
@@ -59,14 +83,14 @@ const setupOwner=asyncRoute(async (req, res) => {
   const id = crypto.randomUUID();
   await query("INSERT INTO admins (id,email,password_hash,display_name,role) VALUES ($1,$2,$3,$4,'owner')", [id, input.email, await bcrypt.hash(input.password, 12), input.displayName]);
   await createSession(id, res); res.status(201).json({ id, email: input.email, displayName: input.displayName, role: "owner" });
-}); app.post("/api/admin/setup",setupOwner); app.post("/api/setup",setupOwner);
-app.post("/api/admin/login", asyncRoute(async (req, res) => {
+}); app.post("/api/admin/setup",rateLimit("owner-setup",5,15*60_000),setupOwner); app.post("/api/setup",rateLimit("owner-setup",5,15*60_000),setupOwner);
+app.post("/api/admin/login", rateLimit("admin-login",10,15*60_000), asyncRoute(async (req, res) => {
   const input = credentialsSchema.pick({ email: true, password: true }).parse(req.body);
   const result = await query<any>("SELECT * FROM admins WHERE email=$1", [input.email]);
   if (!result.rowCount || !(await bcrypt.compare(input.password, result.rows[0].password_hash))) return res.status(401).json({ error: "Invalid email or password" });
   await createSession(result.rows[0].id, res); res.json({ id: result.rows[0].id, email: result.rows[0].email, displayName: result.rows[0].display_name, role: result.rows[0].role });
 }));
-app.post("/api/admin/logout", requireAdmin, asyncRoute(async (req, res) => { const token = req.cookies?.[SESSION_COOKIE]; if (token) await query("DELETE FROM admin_sessions WHERE token_hash=$1", [hashToken(token)]); res.clearCookie(SESSION_COOKIE, { path: "/" }); res.status(204).end(); }));
+app.post("/api/admin/logout", requireAdmin, asyncRoute(async (req, res) => { const token = req.cookies?.[SESSION_COOKIE]; if (token) await query("DELETE FROM admin_sessions WHERE token_hash=$1", [hashToken(token)]); res.clearCookie(SESSION_COOKIE, { ...sessionCookieOptions, maxAge: undefined }); res.status(204).end(); }));
 app.get("/api/admin/me", requireAdmin, (req, res) => res.json(req.admin));
 app.get("/api/admin/overview",requireAdmin,asyncRoute(async(_req,res)=>{const [metrics,recent,lowStock]=await Promise.all([query(`SELECT (SELECT COUNT(*)::int FROM orders) orders,(SELECT COUNT(*)::int FROM orders WHERE fulfillment_status='unfulfilled') pending_orders,(SELECT COALESCE(SUM(total_minor),0)::int FROM orders WHERE payment_status='paid') paid_revenue,(SELECT COUNT(*)::int FROM products WHERE status='active') active_products,(SELECT COUNT(*)::int FROM products WHERE status='draft') draft_products,(SELECT COALESCE(SUM(inventory),0)::int FROM products WHERE status<>'archived') inventory_units`),query(`SELECT id,order_number,customer_name,total_minor total,payment_status,fulfillment_status,created_at FROM orders ORDER BY created_at DESC LIMIT 6`),query(`SELECT id,title name,inventory,status FROM products WHERE track_inventory=true AND status<>'archived' AND inventory<=5 ORDER BY inventory ASC,title LIMIT 8`)]);res.json({metrics:metrics.rows[0],recent_orders:recent.rows,low_stock:lowStock.rows});}));
 app.get("/api/admin/products", requireAdmin, asyncRoute(async (_req, res) => res.json({products:await products(true)})));
@@ -82,9 +106,32 @@ app.put("/api/admin/products/:id", requireAdmin, asyncRoute(async (req, res) => 
 }));
 app.delete("/api/admin/products/:id", requireAdmin, asyncRoute(async (req, res) => { const images = await query<any>("SELECT url FROM product_images WHERE product_id=$1", [req.params.id]); const r = await query("DELETE FROM products WHERE id=$1 RETURNING id", [req.params.id]); if (!r.rowCount) return res.status(404).json({ error: "Product not found" }); for (const image of images.rows) { if (image.url.startsWith("/uploads/")) fs.promises.unlink(path.join(uploadDir,path.basename(image.url))).catch(()=>{}); } res.status(204).end(); }));
 
-const upload = multer({ storage: multer.diskStorage({ destination: uploadDir, filename: (_req, file, cb) => cb(null, `${crypto.randomUUID()}${path.extname(file.originalname).toLowerCase()}`) }), limits: { fileSize: 8 * 1024 * 1024 }, fileFilter: (_req, file, cb) => cb(null, ["image/jpeg","image/png","image/webp","image/avif"].includes(file.mimetype)) });
-app.post("/api/admin/products/:id/images", requireAdmin, upload.any(), asyncRoute(async (req, res) => {
-  const files = req.files as Express.Multer.File[]; const count = await query<any>("SELECT COUNT(*)::int count,COALESCE(MAX(position),-1) position FROM product_images WHERE product_id=$1", [req.params.id]);
+const imageExtensions: Record<string, string> = { "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/avif": ".avif" };
+const upload = multer({
+  storage: multer.diskStorage({ destination: uploadDir, filename: (_req, file, cb) => cb(null, `${crypto.randomUUID()}${imageExtensions[file.mimetype] || ""}`) }),
+  limits: { fileSize: 8 * 1024 * 1024, files: 12, fields: 4, parts: 16 },
+  fileFilter: (_req, file, cb) => cb(null, Boolean(imageExtensions[file.mimetype])),
+});
+const hasImageSignature = async (file: Express.Multer.File) => {
+  const handle = await fs.promises.open(file.path, "r");
+  try {
+    const buffer = Buffer.alloc(16);
+    await handle.read(buffer, 0, buffer.length, 0);
+    if (file.mimetype === "image/jpeg") return buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+    if (file.mimetype === "image/png") return buffer.subarray(0, 8).equals(Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a]));
+    if (file.mimetype === "image/webp") return buffer.toString("ascii",0,4) === "RIFF" && buffer.toString("ascii",8,12) === "WEBP";
+    if (file.mimetype === "image/avif") return buffer.toString("ascii",4,12) === "ftypavif";
+    return false;
+  } finally { await handle.close(); }
+};
+app.post("/api/admin/products/:id/images", requireAdmin, upload.array("images", 12), asyncRoute(async (req, res) => {
+  const files = (req.files || []) as Express.Multer.File[];
+  const valid = await Promise.all(files.map(hasImageSignature));
+  if (valid.some((value) => !value)) {
+    await Promise.all(files.map((file) => fs.promises.unlink(file.path).catch(() => {})));
+    return res.status(400).json({ error: "One or more files are not valid supported images" });
+  }
+  const count = await query<any>("SELECT COUNT(*)::int count,COALESCE(MAX(position),-1) position FROM product_images WHERE product_id=$1", [req.params.id]);
   if (!files.length) return res.status(400).json({ error: "Select at least one image" });
   if (count.rows[0].count + files.length > 12) { for (const file of files) fs.promises.unlink(file.path).catch(()=>{}); return res.status(400).json({ error: "A product can have up to 12 images" }); }
   const existing = { rows: [{ position: count.rows[0].position }] };
@@ -98,14 +145,36 @@ app.patch("/api/admin/orders/:id", requireAdmin, asyncRoute(async (req, res) => 
 app.get("/api/admin/settings", requireAdmin, asyncRoute(async (_req,res)=>{const r=await query("SELECT key,value FROM store_settings");const raw=Object.fromEntries(r.rows.map((x:any)=>[x.key,x.value])),s=raw.store||{},c=raw.contact||{};res.json({store_name:s.name,announcement:s.announcement,offline_payment_instructions:s.offlineInstructions,whatsapp:c.whatsapp,contact_email:c.email});}));
 app.put("/api/admin/settings", requireAdmin, asyncRoute(async (req,res)=>{const b=req.body;await query("UPDATE store_settings SET value=$2,updated_at=now() WHERE key=$1",["store",{name:b.store_name,announcement:b.announcement,offlineInstructions:b.offline_payment_instructions,currency:"NGN"}]);await query("UPDATE store_settings SET value=$2,updated_at=now() WHERE key=$1",["contact",{whatsapp:b.whatsapp,email:b.contact_email}]);res.json(b);}));
 
-app.post("/api/orders", asyncRoute(async (req, res) => {
+app.post("/api/orders", rateLimit("create-order",20,10*60_000), asyncRoute(async (req, res) => {
   const b=req.body; const input=z.object({customerName:z.string().min(2).max(100),customerEmail:z.string().email(),customerPhone:z.string().min(7).max(30),deliveryAddress:z.string().min(10).max(500),notes:z.string().max(1000).default(""),items:z.array(z.object({productId:z.string().uuid(),quantity:z.number().int().min(1).max(50)})).min(1)}).parse({customerName:b.customer_name,customerEmail:b.customer_email,customerPhone:b.customer_phone,deliveryAddress:b.delivery_address,notes:b.notes||"",items:(b.items||[]).map((x:any)=>({productId:x.product_id,quantity:x.quantity}))});
   const client=await pool.connect(); try { await client.query("BEGIN"); let subtotal=0; const lines=[]; for(const item of input.items){const r=await client.query("SELECT * FROM products WHERE id=$1 AND status='active' FOR UPDATE",[item.productId]);if(!r.rowCount) throw new Error("A product is no longer available");const p=r.rows[0];if(p.track_inventory&&p.inventory<item.quantity) throw new Error(`${p.title} does not have enough inventory`);const total=p.price_minor*item.quantity;subtotal+=total;lines.push({...item,title:p.title,unitPrice:p.price_minor,lineTotal:total});if(p.track_inventory)await client.query("UPDATE products SET inventory=inventory-$2 WHERE id=$1",[p.id,item.quantity]);} const orderId=crypto.randomUUID();const order=await client.query("INSERT INTO orders(id,customer_name,customer_email,customer_phone,delivery_address,customer_notes,subtotal_minor,total_minor) VALUES($1,$2,$3,$4,$5,$6,$7,$7) RETURNING *",[orderId,input.customerName,input.customerEmail.toLowerCase(),input.customerPhone,input.deliveryAddress,input.notes,subtotal]);for(const line of lines)await client.query("INSERT INTO order_items(id,order_id,product_id,title,quantity,unit_price_minor,line_total_minor) VALUES($1,$2,$3,$4,$5,$6,$7)",[crypto.randomUUID(),orderId,line.productId,line.title,line.quantity,line.unitPrice,line.lineTotal]);await client.query("COMMIT");res.status(201).json(order.rows[0]); } catch(error){await client.query("ROLLBACK");throw error;} finally{client.release();}
 }));
-app.get("/api/orders/track",asyncRoute(async(req,res)=>{const input=z.object({number:z.coerce.number().int().positive(),email:z.string().email()}).parse(req.query);const r=await query("SELECT order_number,payment_status,fulfillment_status,created_at,updated_at FROM orders WHERE order_number=$1 AND lower(customer_email)=lower($2)",[input.number,input.email]);if(!r.rowCount)return res.status(404).json({error:"We could not find an order matching those details"});res.json(r.rows[0]);}));
+app.get("/api/orders/track",rateLimit("track-order",60,10*60_000),asyncRoute(async(req,res)=>{const input=z.object({number:z.coerce.number().int().positive(),email:z.string().email()}).parse(req.query);const r=await query("SELECT order_number,payment_status,fulfillment_status,created_at,updated_at FROM orders WHERE order_number=$1 AND lower(customer_email)=lower($2)",[input.number,input.email]);if(!r.rowCount)return res.status(404).json({error:"We could not find an order matching those details"});res.json(r.rows[0]);}));
 
-if (process.env.NODE_ENV === "production") { app.use(express.static(path.resolve("dist"))); app.use((_req,res)=>res.sendFile(path.resolve("dist/index.html"))); }
-app.use((error: any, req: express.Request, res: express.Response, _next: express.NextFunction) => { req.log.error({ err:error },"request failed"); if(error instanceof z.ZodError) return res.status(400).json({error:"Please check the submitted information",issues:error.issues}); res.status(error.code==="23505"?409:500).json({error:error.code==="23505"?"That value is already in use":error.message||"Unexpected server error"}); });
+app.use("/api", (_req, res) => res.status(404).json({ error: "API route not found" }));
 
+if (process.env.NODE_ENV === "production") { app.use(express.static(path.resolve("dist"), { maxAge: "1h", etag: true })); app.use((_req,res)=>res.sendFile(path.resolve("dist/index.html"))); }
+app.use((error: any, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  req.log.error({ err: error, requestId: req.id }, "request failed");
+  if (error instanceof z.ZodError) return res.status(400).json({ error: "Please check the submitted information", issues: error.issues });
+  if (error instanceof multer.MulterError) return res.status(400).json({ error: "The uploaded files exceed the allowed limits" });
+  if (error?.code === "23505") return res.status(409).json({ error: "That value is already in use" });
+  res.status(500).json({ error: "Unexpected server error", requestId: req.id });
+});
+
+if (process.env.NODE_ENV === "production") {
+  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required");
+  if (!process.env.SETUP_TOKEN || process.env.SETUP_TOKEN.length < 32) throw new Error("SETUP_TOKEN must contain at least 32 characters");
+}
 await migrate();
-app.listen(port, () => console.log(`DE_JOY store listening on ${port}`));
+const server = app.listen(port, () => console.log(`DE_JOY store listening on ${port}`));
+const shutdown = async (signal: string) => {
+  console.log(`Received ${signal}; shutting down`);
+  server.close(async () => {
+    await pool.end();
+    process.exit(0);
+  });
+  setTimeout(() => process.exit(1), 10_000).unref();
+};
+process.on("SIGTERM", () => void shutdown("SIGTERM"));
+process.on("SIGINT", () => void shutdown("SIGINT"));

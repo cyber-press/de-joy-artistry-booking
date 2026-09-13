@@ -1,6 +1,6 @@
 {
-  "buildId": "dejoy-runtime-catalog-hotfix-v3.3",
-  "summary": "Restore visible starter products and provide the correct dynamic Render deployment architecture",
+  "buildId": "dejoy-security-hardening-v3.4",
+  "summary": "Harden the production API, admin authentication, product uploads, runtime container and operational error handling",
   "changes": [
     "Diagnosed the empty Shop All page as a static-hosting/runtime mismatch",
     "Added a resilient seven-product storefront fallback when the public products API is unavailable or empty",
@@ -23,13 +23,27 @@
     "Introduced a Shopify-inspired two-column product editor for content, media, pricing, inventory, status and organization",
     "Added multi-image uploads with a 12-image limit, primary-image treatment and per-image removal",
     "Added permanent product deletion with uploaded-file cleanup and explicit confirmation",
-    "Improved responsive behavior, keyboard focus treatment, status badges and WCAG-oriented labeling"
+    "Improved responsive behavior, keyboard focus treatment, status badges and WCAG-oriented labeling",
+    "Enabled a restrictive Content Security Policy and production security headers",
+    "Added bounded in-memory rate limiting for owner setup, admin login, order creation and order tracking",
+    "Sanitized inbound request IDs and disabled Express technology disclosure",
+    "Hardened admin session cookies, expired-session cleanup and malformed-origin handling",
+    "Restricted uploads by field, count, size, MIME type, server-generated extension and file signature",
+    "Prevented internal exception leakage and added request IDs to safe production error responses",
+    "Added explicit API 404 behavior, no-store API caching and graceful database shutdown",
+    "Required production DATABASE_URL and a minimum 32-character SETUP_TOKEN",
+    "Hardened the Docker runtime with deterministic checks, dumb-init and post-mount privilege dropping",
+    "Added a private vulnerability reporting policy",
+    "Added least-privilege GitHub Actions typecheck and production-build verification",
+    "Added grouped npm and Docker dependency monitoring through Dependabot"
   ],
   "ownership": "PressCreates LLC",
   "deployment": [
     "Merge this hotfix so the current static storefront immediately displays the starter catalog",
     "Create or sync the render.yaml Blueprint to provision the dynamic commerce web service",
     "Move dejoyartistry.com from the static service to the new web service after health and admin checks pass",
-    "Retrieve SETUP_TOKEN from the Render web service environment and create the owner account at /admin"
+    "Retrieve SETUP_TOKEN from the Render web service environment and create the owner account at /admin",
+    "After merge, allow the Docker build to run npm run check before promoting the web service",
+    "Verify CSP, admin login throttling, uploads and graceful health checks in staging before moving the domain"
   ]
 }
