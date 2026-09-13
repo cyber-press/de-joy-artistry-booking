@@ -277,6 +277,8 @@ function Home() {
             <img
               src="https://images.pexels.com/photos/16363470/pexels-photo-16363470.jpeg?auto=compress&cs=tinysrgb&w=1600"
               alt="Elegant glitter manicure styled against soft pink fabric"
+              loading="eager"
+              fetchPriority="high"
               onError={imgError}
             />
           </div>
@@ -330,6 +332,7 @@ function Home() {
             <img
               src="https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=1200&q=88"
               alt="Elegant manicure detail"
+              loading="lazy"
               onError={imgError}
             />
           </div>
@@ -371,6 +374,8 @@ function Home() {
           />
           <div className="route-grid">
             <article>
+              <div className="route-media"><img src={services[2].image} alt="Sculpted nail extensions with a refined finish" loading="lazy" onError={imgError}/></div>
+              <div className="route-card-copy">
               <span className="route-number">01</span>
               <span className="section-label">STRUCTURE</span>
               <h2>Sculpted extensions &amp; refills</h2>
@@ -381,8 +386,11 @@ function Home() {
               <Link to="/book?service=Acrylic">
                 Build an extension appointment <ArrowRight />
               </Link>
+              </div>
             </article>
             <article>
+              <div className="route-media"><img src={services[3].image} alt="Glossy gel manicure and natural nail care" loading="lazy" onError={imgError}/></div>
+              <div className="route-card-copy">
               <span className="route-number">02</span>
               <span className="section-label">ESSENTIALS</span>
               <h2>Gel &amp; natural nail care</h2>
@@ -393,6 +401,7 @@ function Home() {
               <Link to="/book?service=Gel">
                 Build a gel appointment <ArrowRight />
               </Link>
+              </div>
             </article>
           </div>
         </div>
