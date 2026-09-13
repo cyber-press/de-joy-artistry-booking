@@ -17,7 +17,17 @@ npm run build
 
 ## Deploy
 
-Import this repository into Vercel, Netlify or Cloudflare Pages. Use `npm run build` as the build command and `dist` as the output directory.
+This application must run as a **web service**, not a static site. The storefront, API, owner authentication, PostgreSQL migrations, product management, orders, and uploaded media are served together by Express.
+
+For Render, create or sync the root `render.yaml` Blueprint. It provisions:
+
+- the Docker web service;
+- private PostgreSQL connectivity;
+- a persistent product-media disk;
+- health monitoring at `/api/health`;
+- automatic deployment from `main`.
+
+A static-only deployment can display the public interface, but it cannot provide persistent products, administrator login, uploads, or orders.
 
 ## WhatsApp booking
 

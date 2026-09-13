@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: de-joy-artistry-commerce
+    runtime: docker
+    repo: https://github.com/cyber-press/de-joy-artistry-booking
+    branch: main
+    plan: 0.5c-512mb
+    region: ohio
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: commit
+    healthCheckPath: /api/health
+    domains:
+      - dejoyartistry.com
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dejoy-artistry-postgres
+          property: connectionString
+      - key: DATABASE_SSL
+        value: "false"
+      - key: DATABASE_POOL_SIZE
+        value: "10"
+      - key: UPLOAD_DIR
+        value: /var/data/uploads
+      - key: SETUP_TOKEN
+        generateValue: true
+    disk:
+      name: dejoy-product-media
+      mountPath: /var/data
+      sizeGB: 1
+
+databases:
+  - name: dejoy-artistry-postgres
+    plan: 0.1c-256mb
+    region: ohio
+    databaseName: dejoy_artistry
+    user: dejoy_admin
+    postgresMajorVersion: "18"
+    ipAllowList: []
