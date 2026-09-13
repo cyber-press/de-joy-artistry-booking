@@ -26,7 +26,7 @@ export async function createSession(adminId: string, req: Request, res: Response
 
 declare global {
   namespace Express {
-    interface Request { admin?: { id: string; email: string; displayName: string; role: string; sessionId: string } }
+    interface Request { admin?: { id: string; email: string; displayName: string; role: string; sessionId: string }; rawBody?: Buffer }
   }
 }
 

@@ -80,6 +80,24 @@ CREATE TABLE IF NOT EXISTS orders (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS checkout_token_hash text;
+
+CREATE TABLE IF NOT EXISTS payment_transactions (
+  id uuid PRIMARY KEY,
+  order_id uuid NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  provider text NOT NULL CHECK (provider IN ('paystack','flutterwave','manual')),
+  reference text NOT NULL UNIQUE,
+  provider_transaction_id text,
+  amount_minor integer NOT NULL CHECK (amount_minor >= 0),
+  currency char(3) NOT NULL DEFAULT 'NGN',
+  status text NOT NULL DEFAULT 'initialized' CHECK (status IN ('initialized','pending','successful','failed','cancelled','refunded')),
+  checkout_url text,
+  verified_at timestamptz,
+  response_data jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS order_items (
   id uuid PRIMARY KEY,
   order_id uuid NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
@@ -92,7 +110,8 @@ CREATE TABLE IF NOT EXISTS order_items (
 
 INSERT INTO store_settings (key, value) VALUES
   ('store', '{"name":"DE_JOY ARTISTRY Store","currency":"NGN","announcement":"Shop nail essentials and custom sets.","offlineInstructions":"After placing your order, contact Joy on WhatsApp to receive payment and fulfillment instructions."}'::jsonb),
-  ('contact', '{"whatsapp":"2347087777511","email":""}'::jsonb)
+  ('contact', '{"whatsapp":"2347087777511","email":""}'::jsonb),
+  ('payments', '{"activeProvider":"paystack","paystackEnabled":true,"flutterwaveEnabled":true,"manualEnabled":true,"mode":"test","manualLabel":"Bank transfer","bankName":"","accountName":"","accountNumber":"","instructions":"Payment instructions will be confirmed after checkout."}'::jsonb)
 ON CONFLICT (key) DO NOTHING;
 
 -- Seed the booking portfolio as editable starter products with placeholder pricing.
@@ -131,3 +150,5 @@ CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_sessions_token ON admin_sessions(token_hash);
 CREATE INDEX IF NOT EXISTS idx_sessions_admin ON admin_sessions(admin_id, expires_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_created ON admin_audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_payment_order ON payment_transactions(order_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_payment_status ON payment_transactions(status, created_at DESC);
