@@ -2,6 +2,8 @@
   "buildId": "dejoy-booking-professional-v4.3",
   "summary": "Harden the six-step booking journey into a professional, accessible appointment-request experience",
   "changes": [
+    "Added the selected design image URL first in every generated WhatsApp appointment request",
+    "Added the selected service image URL as the second visual reference in every generated WhatsApp request",
     "Added a booking assurance bar covering completion time, personal confirmation and no-payment expectations",
     "Added precise current-step context and a one-action booking reset control",
     "Required and validated WhatsApp contact details before preparing the final request",

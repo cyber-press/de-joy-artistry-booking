@@ -567,6 +567,7 @@ function Book() {
     [error, setError] = useState("");
   const today = new Date().toISOString().slice(0, 10);
   const selected = services.find((x) => x.name === service)!;
+  const selectedDesign = designs.find((x) => x.name === design)!;
   const state: BookingData = {
     service,
     shape,
@@ -581,7 +582,7 @@ function Book() {
   };
   const summary = useMemo(
     () =>
-      `Hello Joy AD! I would like to request an appointment with DE_JOY ARTISTRY.\n\nName: ${name}\nPhone: ${phone || "Not provided"}\nPreferred date: ${date}\nService: ${service}\nShape: ${shape}\nLength: ${length}\nDesign: ${design}\nColour: ${customColour || colour}\nNotes: ${notes || "None"}\n\nPlease confirm availability and the final price.`,
+      `Hello Joy AD! I would like to request an appointment with DE_JOY ARTISTRY.\n\nName: ${name}\nPhone: ${phone || "Not provided"}\nPreferred date: ${date}\n\nMY SELECTION\nService: ${service}\nShape: ${shape}\nLength: ${length}\nDesign: ${design}\nColour: ${customColour || colour}\n\nIMAGE REFERENCES\nSelected design (${design}):\n${selectedDesign.image}\n\nSelected service (${service}):\n${selected.image}\n\nNotes: ${notes || "None"}\n\nPlease confirm availability and the final price.`,
     [
       name,
       phone,
@@ -593,6 +594,8 @@ function Book() {
       colour,
       customColour,
       notes,
+      selected.image,
+      selectedDesign.image,
     ],
   );
   const validate = (target: number) => {
