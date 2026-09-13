@@ -16,6 +16,21 @@ CREATE TABLE IF NOT EXISTS admin_sessions (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
+ALTER TABLE admin_sessions ADD COLUMN IF NOT EXISTS last_seen_at timestamptz NOT NULL DEFAULT now();
+ALTER TABLE admin_sessions ADD COLUMN IF NOT EXISTS ip_address text;
+ALTER TABLE admin_sessions ADD COLUMN IF NOT EXISTS user_agent text;
+
+CREATE TABLE IF NOT EXISTS admin_audit_logs (
+  id uuid PRIMARY KEY,
+  admin_id uuid REFERENCES admins(id) ON DELETE SET NULL,
+  action text NOT NULL,
+  entity_type text NOT NULL,
+  entity_id text,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+  ip_address text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS products (
   id uuid PRIMARY KEY,
   title text NOT NULL,
@@ -114,3 +129,5 @@ CREATE INDEX IF NOT EXISTS idx_products_status ON products(status);
 CREATE INDEX IF NOT EXISTS idx_product_images_product ON product_images(product_id, position);
 CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_sessions_token ON admin_sessions(token_hash);
+CREATE INDEX IF NOT EXISTS idx_sessions_admin ON admin_sessions(admin_id, expires_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_created ON admin_audit_logs(created_at DESC);

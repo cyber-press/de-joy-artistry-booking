@@ -24,3 +24,5 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - name: Independent verification pass
+        run: npm run check
