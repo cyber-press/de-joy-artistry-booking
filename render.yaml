@@ -27,6 +27,18 @@ services:
         value: /var/data/uploads
       - key: SETUP_TOKEN
         generateValue: true
+      - key: PAYSTACK_TEST_SECRET_KEY
+        sync: false
+      - key: PAYSTACK_LIVE_SECRET_KEY
+        sync: false
+      - key: PAYSTACK_WEBHOOK_SECRET
+        sync: false
+      - key: FLUTTERWAVE_TEST_SECRET_KEY
+        sync: false
+      - key: FLUTTERWAVE_LIVE_SECRET_KEY
+        sync: false
+      - key: FLUTTERWAVE_WEBHOOK_HASH
+        sync: false
     disk:
       name: dejoy-product-media
       mountPath: /var/data
