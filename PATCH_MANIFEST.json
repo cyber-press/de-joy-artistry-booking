@@ -33,7 +33,9 @@
     "Added explicit API 404 behavior, no-store API caching and graceful database shutdown",
     "Required production DATABASE_URL and a minimum 32-character SETUP_TOKEN",
     "Hardened the Docker runtime with deterministic checks, dumb-init and post-mount privilege dropping",
-    "Added a private vulnerability reporting policy"
+    "Added a private vulnerability reporting policy",
+    "Added least-privilege GitHub Actions typecheck and production-build verification",
+    "Added grouped npm and Docker dependency monitoring through Dependabot"
   ],
   "ownership": "PressCreates LLC",
   "deployment": [
