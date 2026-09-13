@@ -2,6 +2,10 @@
   "buildId": "dejoy-booking-professional-v4.3",
   "summary": "Harden the six-step booking journey into a professional, accessible appointment-request experience",
   "changes": [
+    "Upgraded the primary header with a constrained 1140px luxury layout and dark top rule",
+    "Added refined logo detailing, animated navigation indicators and elevated booking CTA feedback",
+    "Rebuilt the bag control with a readable desktop label and removed the distracting zero-count badge",
+    "Grouped header actions for cleaner responsive alignment while preserving all routes and mobile navigation",
     "Rebuilt the services grid as a rigid editorial card system within a 1140px cream canvas",
     "Standardized every service card with a 4:5 media crop, equal-height content body and fixed internal rhythm",
     "Added rose serif index badges, espresso typography and restrained luxury hover and keyboard-focus states",

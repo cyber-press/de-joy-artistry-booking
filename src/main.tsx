@@ -1135,6 +1135,7 @@ function SectionHead({
 }
 function Header() {
   const { lines } = useCart();
+  const bagCount = lines.reduce((total, line) => total + line.quantity, 0);
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   useEffect(() => setOpen(false), [pathname]);
@@ -1146,7 +1147,7 @@ function Header() {
     <header className="site-header">
       <div className="header-inner">
         <Link className="logo" to="/" aria-label="DE_JOY ARTISTRY home">
-          <b>DE_JOY</b>
+          <span className="logo-mark"><b>DE_JOY</b><i /></span>
           <span>ARTISTRY</span>
         </Link>
         <nav aria-label="Primary navigation">
@@ -1155,21 +1156,15 @@ function Header() {
           <NavLink to="/book">Booking</NavLink>
           <NavLink to="/store">Store</NavLink>
         </nav>
-        <Link className="header-book" to="/book">
-          Book now <ArrowRight />
-        </Link>
-        <Link className="header-cart" to="/cart" aria-label="Shopping bag">
-          <ShoppingBag /> <span>{lines.reduce((n, line) => n + line.quantity, 0)}</span>
-        </Link>
-        <button
-          className="menu-button"
-          onClick={() => setOpen(!open)}
-          aria-expanded={open}
-          aria-controls="mobile-navigation"
-          aria-label={open ? "Close menu" : "Open menu"}
-        >
-          {open ? <X /> : <Menu />}
-        </button>
+        <div className="header-actions">
+          <Link className="header-book" to="/book">Book now <ArrowRight /></Link>
+          <Link className="header-cart" to="/cart" aria-label={`Shopping bag with ${bagCount} ${bagCount === 1 ? "item" : "items"}`}>
+            <ShoppingBag /><b>Bag</b>{bagCount > 0 && <span aria-live="polite">{bagCount}</span>}
+          </Link>
+          <button className="menu-button" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="mobile-navigation" aria-label={open ? "Close menu" : "Open menu"}>
+            {open ? <X /> : <Menu />}
+          </button>
+        </div>
       </div>
       <nav
         id="mobile-navigation"
@@ -1180,7 +1175,7 @@ function Header() {
         <NavLink to="/services">Services</NavLink>
         <NavLink to="/book">Booking</NavLink>
         <NavLink to="/store">Store</NavLink>
-        <NavLink to="/cart">Bag ({lines.reduce((n, line) => n + line.quantity, 0)})</NavLink>
+        <NavLink to="/cart">Bag ({bagCount})</NavLink>
       </nav>
     </header>
   );

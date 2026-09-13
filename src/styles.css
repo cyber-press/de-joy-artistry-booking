@@ -86,6 +86,7 @@ small {
   width: max-content;
   color: var(--ink);
 }
+.logo-mark{display:flex;flex-direction:column;gap:.32rem}.logo-mark i{display:block;width:1.75rem;height:1px;background:var(--rose);transition:width .35s ease}.logo:hover .logo-mark i{width:100%}
 .logo b {
   font-size: 1.35rem;
   letter-spacing: 0.12em;
@@ -101,9 +102,9 @@ small {
 .header-book {
   display: none;
 }
-.header-cart { position: relative; display: grid; place-items: center; width: 2.7rem; height: 2.7rem; }
+.header-actions{display:flex;align-items:center;gap:.25rem}.header-cart { position: relative; display: flex; align-items:center;justify-content:center;gap:.45rem; min-width:2.7rem; height: 2.7rem;padding:0 .65rem;border:1px solid transparent;border-radius:999px;transition:background .25s,border-color .25s; }
 .header-cart svg { width: 1.25rem; }
-.header-cart span { position: absolute; right: .05rem; top: .05rem; min-width: 1.1rem; height: 1.1rem; border-radius: 50%; display: grid; place-items: center; background: var(--rose); color: white; font-size: .62rem; }
+.header-cart b{display:none;font-size:.72rem}.header-cart:hover{background:var(--surface2);border-color:var(--line)}.header-cart span { position: absolute; right: .05rem; top: -.05rem; min-width: 1.1rem; height: 1.1rem; padding:0 .25rem;border-radius: 999px; display: grid; place-items: center; background: var(--rose); color: white; font-size: .62rem; }
 .menu-button {
   width: 3rem;
   height: 3rem;
@@ -1007,6 +1008,7 @@ footer {
   .site-header > .header-inner > nav {
     display: flex;
     gap: clamp(1.75rem, 3vw, 3rem);
+    align-self:stretch;
   }
   .site-header > .header-inner > nav a {
     min-height: 3.5rem;
@@ -1014,10 +1016,12 @@ footer {
     align-items: center;
     font-size: 1.1rem;
     font-weight: 600;
+    position:relative;
   }
   .site-header > .header-inner > nav a.active {
     color: var(--rose);
   }
+  .site-header>.header-inner>nav a::after{content:"";position:absolute;left:50%;right:50%;bottom:1.1rem;height:1px;background:var(--rose);transition:left .25s,right .25s}.site-header>.header-inner>nav a:hover::after,.site-header>.header-inner>nav a.active::after{left:.15rem;right:.15rem}
   .header-book {
     min-height: 3.25rem;
     display: flex;
@@ -1029,7 +1033,10 @@ footer {
     color: white;
     font-size: 1rem;
     font-weight: 600;
+    box-shadow:0 .5rem 1.2rem #2d182118;
+    transition:transform .25s,background .25s,box-shadow .25s;
   }
+  .header-book:hover{transform:translateY(-2px);background:#452332;box-shadow:0 .8rem 1.5rem #2d182125}
   .header-book svg {
     width: 1rem;
   }
@@ -1037,6 +1044,7 @@ footer {
   .mobile-nav {
     display: none;
   }
+  .header-cart b{display:inline}
   .hero {
     padding-block: clamp(1.5rem, 3vw, 3rem);
   }
@@ -1497,6 +1505,8 @@ footer {
 }
 
 /* Homepage professional usability refinement */
+.site-header{border-top:2px solid var(--dark)}.header-inner{width:min(calc(100% - 2rem),71.25rem)}
+@media(min-width:48rem){.header-inner{width:min(calc(100% - 3rem),71.25rem)}.logo b{font-size:1.45rem}.logo span:last-child{font-size:.61rem}.site-header>.header-inner>nav{gap:clamp(1.5rem,2.5vw,2.5rem)}.site-header>.header-inner>nav a{font-size:.94rem}.header-actions{gap:.65rem}}
 .hero .eyebrow,.intro .section-label,.philosophy .section-label,.routing .section-label,.journey .section-label,.final-cta .section-label{font-size:clamp(.68rem,.72vw,.76rem);line-height:1.4}.hero-copy>p,.intro p,.philosophy-copy>p,.routing p,.journey header>p{font-size:clamp(.96rem,1.1vw,1.08rem)}.hero-trust{font-size:.78rem}.value-strip .container{font-size:.76rem;letter-spacing:.01em}.route-grid article{min-height:0;padding:0;border-radius:1rem;background:#fff;transition:transform .4s ease,box-shadow .4s ease,border-color .3s}.route-grid article:hover,.route-grid article:focus-within{transform:translateY(-6px);border-color:#c98da4;box-shadow:0 1.25rem 3rem #32131f14}.route-media{aspect-ratio:16/10;overflow:hidden;background:var(--surface2)}.route-media img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.4,0,.2,1)}.route-grid article:hover .route-media img,.route-grid article:focus-within .route-media img{transform:scale(1.045)}.route-card-copy{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-height:18rem;padding:clamp(1.5rem,3vw,2.5rem)}.route-card-copy .route-number{top:-1.15rem}.route-grid a{font-size:.84rem}.journey-grid p{font-size:.94rem}.philosophy-copy li{font-size:.86rem}.final-cta p{font-size:.95rem;line-height:1.65}.btn,.text-link{font-size:.84rem;min-height:3.15rem}.hero-image>img,.philosophy-image img{background:#eadfd8}
 @media(min-width:64rem){.hero-inner{height:clamp(34rem,72vh,38rem);min-height:34rem;max-height:38rem}.hero-image{min-height:34rem}.hero-copy{padding-block:clamp(2.75rem,5vh,4rem)}.hero h1{font-size:clamp(4.6rem,5.25vw,6rem)}}
 @media(max-width:47.99rem){.hero-copy{padding-block:clamp(2.5rem,9vw,4rem)}.hero h1{font-size:clamp(3.2rem,14vw,4.8rem);line-height:.94}.hero-image{min-height:23rem}.value-strip .container{grid-template-columns:1fr;padding-block:1rem;gap:.85rem}.value-strip span{min-height:2rem}.intro,.philosophy,.journey{padding-block:clamp(3.5rem,12vw,5rem)}.routing{padding-bottom:clamp(3.5rem,12vw,5rem)}.route-card-copy{min-height:16rem}.final-cta p{max-width:28rem;margin-inline:auto}}
