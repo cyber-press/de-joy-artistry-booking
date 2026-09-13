@@ -2,6 +2,11 @@
   "buildId": "dejoy-booking-professional-v4.3",
   "summary": "Harden the six-step booking journey into a professional, accessible appointment-request experience",
   "changes": [
+    "Rebuilt the shared footer as a premium dark editorial section used across every public page",
+    "Added a global appointment conversion panel with a direct booking action",
+    "Organized Explore, Shop and Client care destinations into accessible navigation groups",
+    "Added WhatsApp contact access, store support routes, trust messaging and PressCreates LLC technology attribution",
+    "Added responsive one-column mobile and four-column desktop footer layouts within a 1140px boundary",
     "Upgraded the primary header with a constrained 1140px luxury layout and dark top rule",
     "Added refined logo detailing, animated navigation indicators and elevated booking CTA feedback",
     "Rebuilt the bag control with a readable desktop label and removed the distracting zero-count badge",

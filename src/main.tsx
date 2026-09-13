@@ -1266,28 +1266,36 @@ function Legal({ type }: { type: "privacy" | "terms" }) {
 }
 function Footer() {
   return (
-    <footer>
-      <div className="footer-inner">
+    <footer className="site-footer">
+      <div className="footer-cta">
         <div>
-          <Link className="logo" to="/">
-            <b>DE_JOY</b>
-            <span>ARTISTRY</span>
-          </Link>
-          <p>Bespoke nail artistry in Abuja, Nigeria.</p>
+          <span className="section-label">PERSONAL ARTISTRY, THOUGHTFULLY CREATED</span>
+          <h2>Your next signature set starts here.</h2>
         </div>
-        <nav>
-          <Link to="/">Home</Link>
-          <Link to="/services">Services</Link>
-          <Link to="/book">Booking</Link>
-          <Link to="/store">Store</Link>
-          <Link to="/privacy">Privacy</Link>
-          <Link to="/terms">Terms</Link>
+        <Link className="btn footer-book" to="/book">Build your appointment <ArrowRight /></Link>
+      </div>
+      <div className="footer-inner">
+        <div className="footer-brand">
+          <Link className="logo footer-logo" to="/" aria-label="DE_JOY ARTISTRY home">
+            <b>DE_JOY</b><span>ARTISTRY</span>
+          </Link>
+          <p>Bespoke nail artistry shaped around your style, your moment, and the confidence you want to carry.</p>
+          <a className="footer-contact" href={whatsappUrl()} target="_blank" rel="noreferrer"><MessageCircle /> Chat with Joy on WhatsApp</a>
+        </div>
+        <nav className="footer-column" aria-label="Explore">
+          <b>Explore</b><Link to="/">Home</Link><Link to="/services">Services</Link><Link to="/book">Booking</Link><Link to="/store">Store</Link>
         </nav>
-        <small>
-          © 2026 DE_JOY ARTISTRY
-          <br />
-          Abuja, Nigeria
-        </small>
+        <nav className="footer-column" aria-label="Shop collections">
+          <b>Shop</b><Link to="/collections/all">Shop all</Link><Link to="/collections/nail-care">Nail care</Link><Link to="/collections/press-ons">Press-ons</Link><Link to="/track-order">Track order</Link>
+        </nav>
+        <nav className="footer-column" aria-label="Client care">
+          <b>Client care</b><Link to="/shop/shipping">Shipping</Link><Link to="/shop/returns">Returns</Link><Link to="/shop/faq">FAQs</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link>
+        </nav>
+      </div>
+      <div className="footer-bottom">
+        <small>© 2026 DE_JOY ARTISTRY · Abuja, Nigeria</small>
+        <span><ShieldCheck /> Secure, personally confirmed service</span>
+        <small>Website technology by PressCreates LLC</small>
       </div>
     </footer>
   );
