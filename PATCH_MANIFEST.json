@@ -1,7 +1,13 @@
 {
-  "buildId": "dejoy-homepage-usability-v4.2",
-  "summary": "Refine the homepage hero, typography, image-led service cards and responsive hierarchy for a professional finish",
+  "buildId": "dejoy-booking-professional-v4.3",
+  "summary": "Harden the six-step booking journey into a professional, accessible appointment-request experience",
   "changes": [
+    "Added a booking assurance bar covering completion time, personal confirmation and no-payment expectations",
+    "Added precise current-step context and a one-action booking reset control",
+    "Required and validated WhatsApp contact details before preparing the final request",
+    "Prevented past appointment dates and formatted selected dates for clearer review",
+    "Improved live-summary status, confirmation language and appointment-request disclosure",
+    "Scoped booking summary styles to prevent generic aside elements from inheriting booking presentation",
     "Completed a homepage-only source and screenshot usability audit from hero through final conversion section",
     "Constrained the desktop hero to a professional 34–38rem responsive range without cropping its content",
     "Improved hero heading scaling and mobile line-height while preserving the approved image and copy",

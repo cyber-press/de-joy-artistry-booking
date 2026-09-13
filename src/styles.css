@@ -605,6 +605,7 @@ aside h2 {
   overflow: hidden;
   box-shadow: 0 2rem 4.5rem #32131f20;
 }
+.booking-assurance{width:min(calc(100% - 2rem),75rem);margin:-1.5rem auto 1.25rem;display:grid;grid-template-columns:1fr;border:1px solid var(--line);border-radius:.75rem;background:#fff;box-shadow:0 .75rem 2rem #32131f0b;overflow:hidden}.booking-assurance span{min-height:3.35rem;padding:.8rem 1rem;display:flex;align-items:center;justify-content:center;gap:.55rem;border-bottom:1px solid var(--line);font-size:.75rem;font-weight:600}.booking-assurance span:last-child{border-bottom:0}.booking-assurance svg{width:1rem;color:var(--rose)}
 .progress-head {
   padding: 1rem;
   border-bottom: 1px solid var(--line);
@@ -642,6 +643,7 @@ aside h2 {
 .wizard-main {
   padding: clamp(1.25rem, 4vw, 2.5rem);
 }
+.wizard-kicker{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}.wizard-kicker>span{color:var(--rose);font-size:.65rem;font-weight:700;letter-spacing:.16em}.wizard-kicker button{min-height:2.5rem;border:0;background:transparent;display:flex;align-items:center;gap:.4rem;color:var(--muted);font-size:.68rem;font-weight:600;cursor:pointer}.wizard-kicker button:hover{color:var(--ink)}.wizard-kicker svg{width:.85rem}
 .panel > header h2 {
   font-size: clamp(2rem, 4vw, 2.7rem);
   margin: 0 0 0.5rem;
@@ -672,6 +674,7 @@ aside h2 {
   color: #7b2635;
   font-size: 0.75rem;
 }
+.form-error::before{content:"Please check: ";font-weight:700}
 .request-preview {
   margin-top: 1rem;
   border: 1px solid var(--line);
@@ -911,30 +914,31 @@ aside h2 {
   font-size: 0.7rem;
   font-weight: 600;
 }
+.details label>small{color:var(--muted);font-size:.62rem;line-height:1.5}
 .details textarea {
   min-height: 8rem;
   resize: vertical;
 }
-aside {
+.booking-summary {
   padding: 1.25rem;
   border-top: 1px solid var(--line);
   background: var(--surface2);
 }
-aside > img {
+.booking-summary > img {
   width: 100%;
   aspect-ratio: 16/9;
   object-fit: cover;
   margin: 0.8rem 0 1rem;
   border-radius: 0.4rem;
 }
-aside h2 {
+.booking-summary h2 {
   font-size: 1.8rem;
   margin: 0 0 0.8rem;
 }
-aside dl {
+.booking-summary dl {
   margin: 0;
 }
-aside dl div {
+.booking-summary dl div {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
@@ -942,22 +946,23 @@ aside dl div {
   border-bottom: 1px solid #d4c5c6;
   font-size: 0.7rem;
 }
-aside dd {
+.booking-summary dd {
   margin: 0;
   font-weight: 600;
   text-align: right;
 }
-aside p {
+.booking-summary p {
   display: flex;
   gap: 0.5rem;
   font-size: 0.65rem;
   color: var(--muted);
 }
-aside p svg {
+.booking-summary p svg {
   width: 1rem;
   flex: none;
   color: var(--rose);
 }
+.summary-status{width:max-content;margin:-.45rem 0 .65rem;padding:.3rem .55rem;border-radius:99px;background:#fff;display:flex;align-items:center;gap:.4rem;color:var(--muted);font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em}.summary-status i{width:.4rem;height:.4rem;border-radius:50%;background:var(--rose)}.summary-disclaimer{display:block;margin-top:1rem;padding-top:1rem;border-top:1px solid #d4c5c6;color:var(--muted);font-size:.62rem;line-height:1.6}
 footer {
   background: var(--canvas);
   color: var(--ink);
@@ -990,6 +995,7 @@ footer {
   color: var(--muted);
 }
 @media (min-width: 48rem) {
+  .booking-assurance{grid-template-columns:repeat(3,1fr)}.booking-assurance span{border-bottom:0;border-right:1px solid var(--line)}.booking-assurance span:last-child{border-right:0}
   .container,
   .header-inner,
   .footer-inner {
@@ -1167,6 +1173,7 @@ footer {
     max-width: 19rem;
     border-top: 0;
     border-left: 1px solid var(--line);
+    position:relative;
   }
   .option-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
