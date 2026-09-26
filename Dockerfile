@@ -1,11 +1,11 @@
-FROM node:24-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
 RUN npm run check
 
-FROM node:24-alpine
+FROM node:26-alpine
 WORKDIR /app
 ENV NODE_ENV=production PORT=3000 UPLOAD_DIR=/app/uploads
 RUN apk add --no-cache dumb-init su-exec && mkdir -p /app/uploads && chown -R node:node /app
